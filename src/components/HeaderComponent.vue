@@ -1,26 +1,24 @@
 <template>
-    <header class="app-header">
-      <h1><img src="../../public/logo.png" alt="Logo" class="logo" />Subastas</h1>
+  <header class="app-header">
+    <h1><img src="../../public/logo.png" alt="Logo" class="logo" />Subastas</h1>
 
+    <div class="search-container">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar"
+        v-model="searchQuery"
+        @keyup.enter="performSearch"
+      >
+      <button class="search-button" @click="performSearch">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
 
-      <div class="search-container">
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Buscar"
-          v-model="searchQuery"
-          @keyup.enter="performSearch"
-        >
-        <button class="search-button" @click="performSearch">
-          <!-- Icono SVG de Lupa -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
-      </div>
-      <div class="header-icons">
-      
+    <div class="header-icons">
       <button class="icon-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10" />
@@ -28,38 +26,65 @@
           <path d="M12 2a15.3 15.3 0 0 1 0 20a15.3 15.3 0 0 1 0-20" />
         </svg>
       </button>
-
-      
-      <button class="user-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#5D4037" viewBox="0 0 24 24">
-          <path d="M3 6h12v2H3V6zm0 5h12v2H3v-2zm0 5h8v2H3v-2z" />
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#5D4037" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-        </svg>
-      </button>
+      <div class="user-menu-container">
+        <button class="user-button" @click="toggleUserMenu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#5D4037" viewBox="0 0 24 24">
+            <path d="M3 6h12v2H3V6zm0 5h12v2H3v-2zm0 5h8v2H3v-2z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#5D4037" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+          </svg>
+        </button>
+        <div v-if="showUserMenu" class="user-menu">
+          <template v-if="!authStore.isLoggedIn">
+            <router-link to="/login" class="user-menu-item">Iniciar Sesión</router-link>
+            <router-link to="/register" class="user-menu-item">Registrarse</router-link>
+          </template>
+          
+          <template v-else>
+            <router-link to="/profile" class="user-menu-item">Mi Perfil</router-link>
+            <button @click="handleLogout" class="user-menu-item">Cerrar Sesión</button>
+          </template>
+        </div>
+      </div>
     </div>
-    </header>
-  </template>
+  </header>
+</template>
   
-  <script setup>
-  import { ref } from 'vue';
-  
+<script setup>
+import { ref } from 'vue';
+import { useAuthStore } from '../store/auth';
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2534844186.
+import { useRouter } from 'vue-router';
 
-  const searchQuery = ref('');
-  
- 
-  const performSearch = () => {
-    if (searchQuery.value.trim() === '') {
-      alert('Por favor, introduce un término de búsqueda.');
-      return;
-    }
-    // Aquí iría la lógica de búsqueda (p.ej. una llamada a una API)
-    console.log(`Buscando: ${searchQuery.value}`);
-    alert(`Buscando: "${searchQuery.value}"`);
-  };
-  </script>
+const authStore = useAuthStore();
+const router = useRouter();
+
+const showUserMenu = ref(false);
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value;
+};
+
+const handleLogout = () => {
+  authStore.logout();
+  router.push('/login');
+};
+
+
+const searchQuery = ref('');
+
+
+const performSearch = () => {
+  if (searchQuery.value.trim() === '') {
+    alert('Por favor, introduce un término de búsqueda.');
+    return;
+  }
+  // Aquí iría la lógica de búsqueda (p.ej. una llamada a una API)
+  console.log(`Buscando: ${searchQuery.value}`);
+  alert(`Buscando: "${searchQuery.value}"`);
+};
+</script>
   
   <style scoped>
 
@@ -169,4 +194,126 @@ h1 {
   font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 2rem;  
 }
+
+.user-menu-container {
+  position: relative; /* Clave para posicionar el menú */
+  display: inline-block;
+}
+
+.user-menu {
+  position: absolute;
+  top: 100%; /* Justo debajo del botón */
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1000;
+  margin-top: 8px;
+  overflow: hidden; /* Para que los bordes redondeados se apliquen a los items */
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+@media (max-width: 915px) {
+  .app-header {
+    flex-wrap: wrap;
+    padding: 15px 10px;
+    row-gap: 5px; 
+  }
+
+  h1 {
+    order: 1;
+    font-size: 1.5rem;
+  }
+
+  .logo {
+    height: 45px;
+    margin-right: 10px;
+  }
+
+  .header-icons {
+    order: 2;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+
+  .search-container {
+    order: 3;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    padding: 15px 10px;
+    row-gap: 5px; 
+  }
+
+  h1 {
+    order: 1;
+    font-size: 1.5rem;
+  }
+
+  .logo {
+    height: 45px;
+    margin-right: 10px;
+  }
+
+  .header-icons {
+    order: 2;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+
+  .search-container {
+    order: 3;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .user-button {
+    padding: 4px 8px;
+  }
+
+  .header-icons {
+    gap: 8px;
+  }
+
+  .search-container {
+    margin-top: 10px;
+  }
+}
+
+
 </style>
