@@ -1,0 +1,64 @@
+{
+  "header": {
+    "title": "Subastas",
+    "searchPlaceholder": "Buscar",
+    "searchAlert": "Por favor, introduce un término de búsqueda.",
+    "searching": "Buscando: \"{query}\""
+  },
+  "userMenu": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "profile": "Mi Perfil",
+    "logout": "Cerrar Sesión"
+  },
+  "login": {
+    "welcome": "BIENVENIDO",
+    "emailLabel": "Correo",
+    "emailPlaceholder": "Ingresa tu correo",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "loginButton": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión...",
+    "loginError": "Error al iniciar sesión. Verifique su correo y contraseña.",
+    "noAccountPrompt": "¿Todavía no tienes una cuenta? {createAccountLink}",
+    "createAccountNow": "Crea una ahora",
+    "carousel": {
+      "slide1": "El mejor ganado del mercado",
+      "slide2": "Genética y Calidad Superior"
+    }
+  },
+  "register": {
+    "title": "Registro cuenta personal",
+    "profilePhoto": "Foto perfil",
+    "uploadHint": "Cargar una imagen. Tamaño máximo 2MB",
+    "uploadButton": "Cargar imagen",
+    "fullName": "Nombre Completo",
+    "fullNamePlaceholder": "Ingrese su nombre completo",
+    "idType": "Tipo Identificación",
+    "idNumber": "Número Identificación",
+    "idNumberPlaceholder": "Ingrese número de identificación",
+    "phoneNumber": "Número teléfono",
+    "countryCode": "Código del país",
+    "phoneNumberPlaceholder": "Ingrese número de teléfono",
+    "province": "Provincia",
+    "canton": "Cantón",
+    "district": "Distrito",
+    "exactAddress": "Señas exactas",
+    "exactAddressPlaceholder": "Ingrese las señas exactas de su dirección",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "Ingrese su correo electrónico",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Ingrese su contraseña",
+    "passwordConfirm": "Confirmación",
+    "passwordConfirmPlaceholder": "Vuelva a ingresar la contraseña",
+    "registerButton": "Registrarse",
+    "successMessage": "¡Registro exitoso! Redirigiendo al login...",
+    "errorMessage": "Error en el registro. Por favor, verifique sus datos.",
+    "passwordMismatch": "Las contraseñas no coinciden.",
+    "carousel": {
+      "slide1": "Calidad que se ve, confianza que se siente.",
+      "slide2": "Invierte en genética, cosecha el futuro."
+    },
+    "loginPrompt": "¿Ya tienes una cuenta? {loginLink}",
+    "loginNow": "Inicia sesión"
+  }
+}

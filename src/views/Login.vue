@@ -20,25 +20,34 @@
     <div class="form-panel">
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
-        <h1>BIENVENIDO</h1>
+        <h1>{{ t('login.welcome') }}</h1>
         <form @submit.prevent="handleLogin">
           <div class="input-group">
-            <label for="email">Correo</label>
-            <input type="email" id="email" v-model="email" placeholder="Ingresa tu correo" required />
+            <label for="email">{{ t('login.emailLabel') }}</label>
+            <input type="email" id="email" v-model="email" :placeholder="t('login.emailPlaceholder')" required />
           </div>
           <div class="input-group">
             <div class="password-header"></div>
             <div class="password-wrapper">
-              <input :type="passwordFieldType" id="password" v-model="password" placeholder="Ingresa tu contraseña" required />
+              <input :type="passwordFieldType" id="password" v-model="password" :placeholder="t('login.passwordPlaceholder')" required />
               <button type="button" @click="togglePasswordVisibility" class="toggle-password">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
           </div>
-          <button type="submit" class="btn-login">Iniciar sesión</button>
+          <!-- CAMBIO: El botón ahora se deshabilita y cambia de texto durante la carga -->
+          <button type="submit" class="btn-login" :disabled="loading">
+            {{ loading ? t('login.loggingIn') : t('login.loginButton') }}
+          </button>
         </form>
         <div class="signup-link">
-          ¿Todavía no tienes una cuenta? <router-link to="/register"><strong>Crea una ahora</strong></router-link>
+          <i18n-t keypath="login.noAccountPrompt" tag="span">
+            <template #createAccountLink>
+              <router-link to="/register">
+                <strong>{{ t('login.createAccountNow') }}</strong>
+              </router-link>
+            </template>
+          </i18n-t>
         </div>
       </div>
     </div>
@@ -47,17 +56,59 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+// CAMBIO: Importa el store de Pinia y el router de Vue
+import { useAuthStore } from '../store/auth';
+import { useRouter } from 'vue-router';
+
+const { t } = useI18n();
+// CAMBIO: Crea instancias del store y del router
+const authStore = useAuthStore();
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
+// CAMBIO: Añadimos un estado para la carga
+const loading = ref(false);
+
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'));
 const togglePasswordVisibility = () => { showPassword.value = !showPassword.value; };
-const handleLogin = () => { console.log('Iniciando sesión...'); };
 
-const carouselItems = ref([
-  { text: 'El mejor ganado del mercado' },
-  { text: 'Genética y Calidad Superior' },
+// CAMBIO: Lógica funcional para el login
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    return; // Evita enviar si los campos están vacíos (aunque 'required' ayuda)
+  }
+  
+  loading.value = true; // Inicia la carga
+
+  try {
+    const user = {
+      email: email.value,
+      password: password.value,
+    };
+    
+    // Llama a la acción 'login' del store
+    await authStore.login(user);
+    
+    // Si el login es exitoso, redirige al usuario a la página principal
+    router.push('/'); 
+
+  } catch (error) {
+    // Si hay un error, lo muestra al usuario
+    console.error("Error en el login:", error);
+    alert(t('login.loginError'));
+  } finally {
+    // Se ejecuta siempre, tanto si hay éxito como si hay error
+    loading.value = false; // Detiene la carga
+  }
+};
+
+// Lógica del carrusel (sin cambios)
+const carouselItems = computed(() => [
+  { text: t('login.carousel.slide1') },
+  { text: t('login.carousel.slide2') },
 ]);
 
 const currentIndex = ref(0);
@@ -79,15 +130,21 @@ onMounted(() => {
   intervalId = setInterval(nextSlide, 3000); 
 });
 
-
 onUnmounted(() => {
   clearInterval(intervalId);
 });
 </script>
 
 <style scoped>
-
+/* Los estilos se mantienen igual */
 .login-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; 
+  z-index: 100;
+
   --font-heading: 'Merriweather', serif;
   --font-body: 'Lato', sans-serif;
   --color-primary: #6D4C41; 
@@ -97,11 +154,9 @@ onUnmounted(() => {
   --color-text: #3E2723; 
   --color-white: #FFFFFF;
   display: flex;
-  min-height: 100vh;
-  width: 100%;
   font-family: var(--font-body);
-}
 
+}
 
 .image-panel {
   flex: 1.2;
@@ -113,7 +168,6 @@ onUnmounted(() => {
   padding: 40px;
   overflow: hidden; 
 }
-
 
 .image-panel img {
   position: absolute;
@@ -162,7 +216,6 @@ onUnmounted(() => {
   background-color: var(--color-white); 
 }
 
-
 .form-panel {
   flex: 1;
   display: flex;
@@ -209,13 +262,18 @@ input::placeholder { color: var(--color-secondary); }
 .password-wrapper input { padding-right: 50px; }
 .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-secondary); }
 .btn-login { width: 100%; padding: 15px; border-radius: 8px; border: none; background-color: #A85B2C; color: var(--color-white); font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
-.btn-login:hover { background-color: #5C3218; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); }
+.btn-login:hover { background-color: #5C3218; }
+.btn-login:disabled { background-color: #A1887F; cursor: not-allowed;} /* Estilo para el botón deshabilitado */
+
 .signup-link { text-align: center; margin-top: 2rem; color: var(--color-text); }
 .signup-link a { color: var(--color-primary); text-decoration: none; font-weight: 700; }
 .signup-link a:hover { text-decoration: underline; }
 
 @media (max-width: 992px) {
-  .login-page { flex-direction: column; }
+  .login-page { 
+    flex-direction: column;
+    overflow-y: auto;
+   }
   .image-panel { flex: none; height: 300px; }
   .form-panel { padding: 20px; }
   .form-content { flex-grow: 0; margin: 2rem auto; }

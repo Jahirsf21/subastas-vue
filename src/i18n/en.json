@@ -1,0 +1,62 @@
+{
+  "header": {
+    "title": "Auctions",
+    "searchPlaceholder": "Search",
+    "searchAlert": "Please enter a search term.",
+    "searching": "Searching for: \"{query}\""
+  },
+  "userMenu": {
+    "login": "Login",
+    "register": "Sign Up",
+    "profile": "My Profile",
+    "logout": "Logout"
+  },
+  "login": {
+    "welcome": "WELCOME",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "loginButton": "Log In",
+    "noAccountPrompt": "Don't have an account yet? {createAccountLink}",
+    "createAccountNow": "Create one now",
+    "carousel": {
+      "slide1": "The best livestock on the market",
+      "slide2": "Superior Genetics and Quality"
+    }
+  },
+  "register": {
+    "title": "Personal Account Registration",
+    "profilePhoto": "Profile Picture",
+    "uploadHint": "Upload an image. Max size 2MB",
+    "uploadButton": "Upload Image",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "idType": "ID Type",
+    "idNumber": "ID Number",
+    "idNumberPlaceholder": "Enter identification number",
+    "phoneNumber": "Phone Number",
+    "countryCode": "Country code",
+    "phoneNumberPlaceholder": "Enter phone number",
+    "province": "Province",
+    "canton": "Canton",
+    "district": "District",
+    "exactAddress": "Exact Address",
+    "exactAddressPlaceholder": "Enter your exact address details",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordConfirm": "Confirmation",
+    "passwordConfirmPlaceholder": "Re-enter your password",
+    "registerButton": "Register",
+    "successMessage": "Registration successful! Redirecting to login...",
+    "errorMessage": "Registration error. Please check your data.",
+    "passwordMismatch": "Passwords do not match.",
+    "carousel": {
+      "slide1": "Quality you can see, trust you can feel.",
+      "slide2": "Invest in genetics, harvest the future."
+    },
+    "loginPrompt": "Already have an account?",
+    "loginNow": "Log in"
+  }
+}

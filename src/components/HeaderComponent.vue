@@ -1,12 +1,12 @@
 <template>
   <header class="app-header">
-    <h1><img src="../../public/logo.png" alt="Logo" class="logo" />Subastas</h1>
+    <h1><img src="../../public/logo.png" alt="Logo" class="logo" />{{ t('header.title') }}</h1>
 
     <div class="search-container">
       <input 
         type="text" 
         class="search-input" 
-        placeholder="Buscar"
+        :placeholder="t('header.searchPlaceholder')"
         v-model="searchQuery"
         @keyup.enter="performSearch"
       >
@@ -19,13 +19,22 @@
     </div>
 
     <div class="header-icons">
-      <button class="icon-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="2" y1="12" x2="22" y2="12" />
-          <path d="M12 2a15.3 15.3 0 0 1 0 20a15.3 15.3 0 0 1 0-20" />
-        </svg>
-      </button>
+      <div class="language-menu-container">
+        <button class="icon-button" @click="toggleLanguageMenu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 0 20a15.3 15.3 0 0 1 0-20" />
+          </svg>
+        </button>
+        <div v-if="showLanguageMenu" class="user-menu">
+            <button @click="changeLanguage('es')" class="user-menu-item">Español</button>
+            <button @click="changeLanguage('en')" class="user-menu-item">English</button>
+            <button @click="changeLanguage('fr')" class="user-menu-item">Français</button>
+            <button @click="changeLanguage('pt')" class="user-menu-item">Português</button>
+            <button @click="changeLanguage('zh')" class="user-menu-item">中文</button>
+        </div>
+      </div>
       <div class="user-menu-container">
         <button class="user-button" @click="toggleUserMenu">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#5D4037" viewBox="0 0 24 24">
@@ -38,13 +47,14 @@
         </button>
         <div v-if="showUserMenu" class="user-menu">
           <template v-if="!authStore.isLoggedIn">
-            <router-link to="/login" class="user-menu-item">Iniciar Sesión</router-link>
-            <router-link to="/register" class="user-menu-item">Registrarse</router-link>
+            <!-- Usamos t() para el menú de usuario -->
+            <router-link to="/login" class="user-menu-item">{{ t('userMenu.login') }}</router-link>
+            <router-link to="/register" class="user-menu-item">{{ t('userMenu.register') }}</router-link>
           </template>
           
           <template v-else>
-            <router-link to="/profile" class="user-menu-item">Mi Perfil</router-link>
-            <button @click="handleLogout" class="user-menu-item">Cerrar Sesión</button>
+            <router-link to="/profile" class="user-menu-item">{{ t('userMenu.profile') }}</router-link>
+            <button @click="handleLogout" class="user-menu-item">{{ t('userMenu.logout') }}</button>
           </template>
         </div>
       </div>
@@ -52,18 +62,26 @@
   </header>
 </template>
   
+
 <script setup>
 import { ref } from 'vue';
 import { useAuthStore } from '../store/auth';
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2534844186.
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n'; 
+
+import { useSettingsStore } from '../store/settings';
+
+const { t } = useI18n();
 
 const authStore = useAuthStore();
 const router = useRouter();
 
+const settingsStore = useSettingsStore();
+
 const showUserMenu = ref(false);
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value;
+  if (showLanguageMenu.value) showLanguageMenu.value = false;
 };
 
 const handleLogout = () => {
@@ -71,30 +89,49 @@ const handleLogout = () => {
   router.push('/login');
 };
 
-
 const searchQuery = ref('');
-
 
 const performSearch = () => {
   if (searchQuery.value.trim() === '') {
-    alert('Por favor, introduce un término de búsqueda.');
+    alert(t('header.searchAlert'));
     return;
   }
-  // Aquí iría la lógica de búsqueda (p.ej. una llamada a una API)
-  console.log(`Buscando: ${searchQuery.value}`);
-  alert(`Buscando: "${searchQuery.value}"`);
+  alert(t('header.searching', { query: searchQuery.value }));
 };
+
+const showLanguageMenu = ref(false);
+
+const toggleLanguageMenu = () => {
+  showLanguageMenu.value = !showLanguageMenu.value;
+  if (showUserMenu.value) showUserMenu.value = false;
+};
+
+
+const changeLanguage = (lang) => {
+    settingsStore.setLanguage(lang);
+    showLanguageMenu.value = false;
+}
 </script>
   
-  <style scoped>
+<style scoped>
 
   .app-header {
-    background-color: #e9e9e9; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+
+    box-sizing: border-box;
+
+    /* 3. Estilos visuales */
+    background-color: #e9e9e9;
     padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   
 
@@ -130,7 +167,6 @@ const performSearch = () => {
     opacity: 1;
   }
   
-  /* Botón de búsqueda */
   .search-button {
     background-color: #8D6E63; 
     border: none;
@@ -150,170 +186,109 @@ const performSearch = () => {
     background-color: #6D4C41; 
   }
   
-
   .search-button svg {
     stroke: currentColor;
     stroke-width: 2.5;
   }
-  .header-icons {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-
-.icon-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-}
-
-.user-button {
-  background-color: transparent;
-  border: 2px solid #8D6E63;
-  border-radius: 50px;
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.logo {
-  height: 60px;
-}
-
-h1 {
-  display: flex;
-  align-items: center; 
-  gap: 15px;         
-  margin: 0;        
-  color: #5D4037;   
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 2rem;  
-}
-
-.user-menu-container {
-  position: relative; /* Clave para posicionar el menú */
-  display: inline-block;
-}
-
-.user-menu {
-  position: absolute;
-  top: 100%; /* Justo debajo del botón */
-  right: 0;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 180px;
-  z-index: 1000;
-  margin-top: 8px;
-  overflow: hidden; /* Para que los bordes redondeados se apliquen a los items */
-}
-
-.user-menu-item {
-  display: block;
-  width: 100%;
-  padding: 12px 20px;
-  text-align: left;
-  background: none;
-  border: none;
-  color: #333;
-  font-size: 16px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.user-menu-item:hover {
-  background-color: #f5f5f5;
-}
-
-@media (max-width: 915px) {
-  .app-header {
-    flex-wrap: wrap;
-    padding: 15px 10px;
-    row-gap: 5px; 
-  }
-
-  h1 {
-    order: 1;
-    font-size: 1.5rem;
-  }
-
-  .logo {
-    height: 45px;
-    margin-right: 10px;
-  }
 
   .header-icons {
-    order: 2;
-    gap: 10px;
-    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
   }
 
-  .search-container {
-    order: 3;
-    width: 100%;
-    max-width: none;
-  }
-}
-
-
-@media (max-width: 768px) {
-  .app-header {
-    flex-wrap: wrap;
-    padding: 15px 10px;
-    row-gap: 5px; 
-  }
-
-  h1 {
-    order: 1;
-    font-size: 1.5rem;
-  }
-
-  .logo {
-    height: 45px;
-    margin-right: 10px;
-  }
-
-  .header-icons {
-    order: 2;
-    gap: 10px;
-    margin-bottom: 5px;
-  }
-
-  .search-container {
-    order: 3;
-    width: 100%;
-    max-width: none;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.3rem;
-  }
-
-  .logo {
-    height: 40px;
+  .icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
   }
 
   .user-button {
-    padding: 4px 8px;
+    background-color: transparent;
+    border: 2px solid #8D6E63;
+    border-radius: 50px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
   }
 
-  .header-icons {
-    gap: 8px;
+  .logo {
+    height: 60px;
   }
 
-  .search-container {
-    margin-top: 10px;
+  h1 {
+    display: flex;
+    align-items: center; 
+    gap: 15px;         
+    margin: 0;        
+    color: #5D4037;   
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 2rem;  
   }
-}
 
+  .user-menu-container,
+  .language-menu-container {
+    position: relative; 
+    display: inline-block;
+  }
 
+  .user-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 1000; 
+    margin-top: 8px;
+    overflow: hidden; 
+  }
+
+  .user-menu-item {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .user-menu-item:hover {
+    background-color: #f5f5f5;
+  }
+
+  @media (max-width: 915px) {
+    .app-header {
+      flex-wrap: wrap;
+      padding: 15px 10px;
+      row-gap: 5px; 
+    }
+    h1 { order: 1; font-size: 1.5rem; }
+    .logo { height: 45px; margin-right: 10px; }
+    .header-icons { order: 2; gap: 10px; margin-bottom: 5px; }
+    .search-container { order: 3; width: 100%; max-width: none; }
+  }
+
+  @media (max-width: 768px) {
+    
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.3rem; }
+    .logo { height: 40px; }
+    .user-button { padding: 4px 8px; }
+    .header-icons { gap: 8px; }
+    .search-container { margin-top: 10px; }
+  }
 </style>

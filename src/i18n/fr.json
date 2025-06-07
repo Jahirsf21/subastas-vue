@@ -1,0 +1,27 @@
+{
+  "header": {
+    "title": "Enchères",
+    "searchPlaceholder": "Rechercher",
+    "searchAlert": "Veuillez saisir un terme de recherche.",
+    "searching": "Recherche de : \"{query}\""
+  },
+  "userMenu": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "profile": "Mon Profil",
+    "logout": "Déconnexion"
+  },
+  "login": {
+    "welcome": "BIENVENUE",
+    "emailLabel": "Courriel",
+    "emailPlaceholder": "Entrez votre courriel",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "loginButton": "Se connecter",
+    "noAccountPrompt": "Vous n'avez pas encore de compte ? {createAccountLink}",
+    "createAccountNow": "Créez-en un maintenant",
+    "carousel": {
+      "slide1": "Le meilleur bétail du marché",
+      "slide2": "Génétique et Qualité Supérieure"
+    }
+  }
+}

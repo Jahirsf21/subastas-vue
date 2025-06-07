@@ -1,0 +1,27 @@
+{
+  "header": {
+    "title": "Leilões",
+    "searchPlaceholder": "Buscar",
+    "searchAlert": "Por favor, insira um termo de pesquisa.",
+    "searching": "Buscando por: \"{query}\""
+  },
+  "userMenu": {
+    "login": "Entrar",
+    "register": "Registrar-se",
+    "profile": "Meu Perfil",
+    "logout": "Sair"
+  },
+  "login": {
+    "welcome": "BEM-VINDO",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "Digite seu e-mail",
+    "passwordPlaceholder": "Digite sua senha",
+    "loginButton": "Entrar",
+    "noAccountPrompt": "Ainda não tem uma conta? {createAccountLink}",
+    "createAccountNow": "Crie uma agora",
+    "carousel": {
+      "slide1": "O melhor gado do mercado",
+      "slide2": "Genética e Qualidade Superior"
+    }
+  }
+}
