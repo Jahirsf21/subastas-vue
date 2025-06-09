@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
-import SubastaDetails from '../views/subastaDetails.vue';
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Profile from '../views/Profile.vue';
@@ -11,12 +10,6 @@ const routes = [
         name: 'home',
         component: HomePage
     },
-    {
-        path: '/subastas/:subastaTitulo',
-        name: 'subastaDetails',
-        component: SubastaDetails
-    },
-
     {
         path: '/login',
         name: 'login',
