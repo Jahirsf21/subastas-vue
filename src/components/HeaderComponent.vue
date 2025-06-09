@@ -114,26 +114,23 @@ const changeLanguage = (lang) => {
 </script>
   
 <style scoped>
-
   .app-header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 999;
-
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     box-sizing: border-box;
 
-    /* 3. Estilos visuales */
-    background-color: #e9e9e9;
-    padding: 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    padding: 12px 24px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    font-family: 'Segoe UI', sans-serif;
   }
-  
 
   .search-container {
     display: flex;

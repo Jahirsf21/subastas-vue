@@ -1,27 +1,7 @@
 {
-  "header": {
-    "title": "Enchères",
-    "searchPlaceholder": "Rechercher",
-    "searchAlert": "Veuillez saisir un terme de recherche.",
-    "searching": "Recherche de : \"{query}\""
-  },
-  "userMenu": {
-    "login": "Connexion",
-    "register": "S'inscrire",
-    "profile": "Mon Profil",
-    "logout": "Déconnexion"
-  },
-  "login": {
-    "welcome": "BIENVENUE",
-    "emailLabel": "Courriel",
-    "emailPlaceholder": "Entrez votre courriel",
-    "passwordPlaceholder": "Entrez votre mot de passe",
-    "loginButton": "Se connecter",
-    "noAccountPrompt": "Vous n'avez pas encore de compte ? {createAccountLink}",
-    "createAccountNow": "Créez-en un maintenant",
-    "carousel": {
-      "slide1": "Le meilleur bétail du marché",
-      "slide2": "Génétique et Qualité Supérieure"
-    }
-  }
+  "header": { "title": "Enchères", "searchPlaceholder": "Rechercher", "searchAlert": "Veuillez entrer un terme de recherche.", "searching": "Recherche de : \"{query}\"" },
+  "userMenu": { "login": "Se connecter", "register": "S'inscrire", "profile": "Mon Profil", "logout": "Se déconnecter" },
+  "login": { "welcome": "BIENVENUE", "emailLabel": "Courriel", "emailPlaceholder": "Entrez votre courriel", "passwordPlaceholder": "Entrez votre mot de passe", "loginButton": "Se connecter", "loggingIn": "Connexion en cours...", "loginError": "Échec de la connexion. Veuillez vérifier votre courriel et votre mot de passe.", "noAccountPrompt": "Vous n'avez pas encore de compte ? {createAccountLink}", "createAccountNow": "Créez-en un maintenant", "carousel": { "slide1": "Le meilleur bétail du marché", "slide2": "Génétique et Qualité Supérieure" } },
+  "register": { "title": "Inscription de compte personnel", "profilePhoto": "Photo de profil", "uploadHint": "Télécharger une image. Taille max 2Mo", "uploadButton": "Télécharger l'image", "fullName": "Nom complet", "fullNamePlaceholder": "Entrez votre nom complet", "idType": "Type d'ID", "idNumber": "Numéro d'ID", "idNumberPlaceholder": "Entrez le numéro d'identification", "phoneNumber": "Numéro de téléphone", "countryCode": "Code pays", "phoneNumberPlaceholder": "Entrez le numéro de téléphone", "province": "Province", "canton": "Canton", "district": "District", "exactAddress": "Adresse exacte", "exactAddressPlaceholder": "Entrez les détails de votre adresse exacte", "email": "Courriel", "emailPlaceholder": "Entrez votre courriel", "password": "Mot de passe", "passwordPlaceholder": "Entrez votre mot de passe", "passwordConfirm": "Confirmation", "passwordConfirmPlaceholder": "Retapez le mot de passe", "registerButton": "S'inscrire", "successMessage": "Inscription réussie ! Redirection vers la connexion...", "errorMessage": "Erreur d'inscription. Veuillez vérifier vos données.", "passwordMismatch": "Les mots de passe ne correspondent pas.", "carousel": { "slide1": "La qualité que vous voyez, la confiance que vous sentez.", "slide2": "Investissez en génétique, récoltez l'avenir." }, "loginPrompt": "Vous avez déjà un compte ? ", "loginNow": "Se connecter" },
+  "categories": { "weight": "Poids", "certification": "Certification", "age": "Âge", "breed": "Race", "gender": "Genre", "vaccination": "Vaccination", "auctionDate": "Date de l'enchère", "price": "Prix", "personal": "Personnel", "ranch": "Élevage", "filters": "Filtres" }
 }

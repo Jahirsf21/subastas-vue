@@ -35,7 +35,6 @@
               </button>
             </div>
           </div>
-          <!-- CAMBIO: El botón ahora se deshabilita y cambia de texto durante la carga -->
           <button type="submit" class="btn-login" :disabled="loading">
             {{ loading ? t('login.loggingIn') : t('login.loginButton') }}
           </button>
@@ -57,31 +56,28 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-// CAMBIO: Importa el store de Pinia y el router de Vue
 import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
-// CAMBIO: Crea instancias del store y del router
 const authStore = useAuthStore();
 const router = useRouter();
 
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
-// CAMBIO: Añadimos un estado para la carga
 const loading = ref(false);
 
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'));
 const togglePasswordVisibility = () => { showPassword.value = !showPassword.value; };
 
-// CAMBIO: Lógica funcional para el login
+
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    return; // Evita enviar si los campos están vacíos (aunque 'required' ayuda)
+    return; 
   }
   
-  loading.value = true; // Inicia la carga
+  loading.value = true; 
 
   try {
     const user = {
@@ -89,23 +85,19 @@ const handleLogin = async () => {
       password: password.value,
     };
     
-    // Llama a la acción 'login' del store
+
     await authStore.login(user);
     
-    // Si el login es exitoso, redirige al usuario a la página principal
     router.push('/'); 
 
   } catch (error) {
-    // Si hay un error, lo muestra al usuario
     console.error("Error en el login:", error);
     alert(t('login.loginError'));
   } finally {
-    // Se ejecuta siempre, tanto si hay éxito como si hay error
-    loading.value = false; // Detiene la carga
+    loading.value = false; 
   }
 };
 
-// Lógica del carrusel (sin cambios)
 const carouselItems = computed(() => [
   { text: t('login.carousel.slide1') },
   { text: t('login.carousel.slide2') },
@@ -136,7 +128,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Los estilos se mantienen igual */
+
 .login-page {
   position: fixed;
   top: 0;
@@ -263,7 +255,7 @@ input::placeholder { color: var(--color-secondary); }
 .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-secondary); }
 .btn-login { width: 100%; padding: 15px; border-radius: 8px; border: none; background-color: #A85B2C; color: var(--color-white); font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
 .btn-login:hover { background-color: #5C3218; }
-.btn-login:disabled { background-color: #A1887F; cursor: not-allowed;} /* Estilo para el botón deshabilitado */
+.btn-login:disabled { background-color: #A1887F; cursor: not-allowed;}
 
 .signup-link { text-align: center; margin-top: 2rem; color: var(--color-text); }
 .signup-link a { color: var(--color-primary); text-decoration: none; font-weight: 700; }

@@ -1,6 +1,5 @@
 <template>
   <div class="register-page">
-    <!-- ===== PANEL IZQUIERDO: CARRUSEL DE IMÁGENES ===== -->
     <div class="image-panel">
       <img src="/masvacas.jpg" alt="Ganado en el campo" :class="{ active: currentIndex === 0 }">
       <img src="/masmasvacas.jpg" alt="Toros en exhibición" :class="{ active: currentIndex === 1 }">
@@ -11,15 +10,12 @@
         </div>
       </div>
     </div>
-    
-    <!-- ===== PANEL DERECHO: FORMULARIO DE REGISTRO COMPLETO ===== -->
     <div class="form-panel">
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
         <h1>{{ t('register.title') }}</h1>
         
         <form @submit.prevent="handleRegister">
-          <!-- Foto Perfil -->
           <div class="form-group-full">
             <label>{{ t('register.profilePhoto') }}</label>
             <div class="file-uploader">
@@ -31,8 +27,6 @@
               <input id="file-input" type="file" @change="handleFileChange" accept="image/*" hidden />
             </div>
           </div>
-
-          <!-- Nombre y Fecha Nacimiento -->
           <div class="form-row">
             <div class="form-group">
               <label for="fullName">{{ t('register.fullName') }}</label>
@@ -43,8 +37,6 @@
               <input type="date" id="birthDate" v-model="formData.fechaNacimiento" required />
             </div>
           </div>
-
-          <!-- Tipo y Número de Identificación -->
           <div class="form-row">
             <div class="form-group">
               <label for="idType">{{ t('register.idType') }}</label>
@@ -59,8 +51,6 @@
               <input type="text" id="idNumber" v-model="formData.cedula" :placeholder="t('register.idNumberPlaceholder')" required />
             </div>
           </div>
-          
-          <!-- Código de País y Teléfono -->
           <div class="form-row">
             <div class="form-group" style="flex: 0.5;">
               <label for="countryCode">{{ t('register.countryCode') }}</label>
@@ -75,8 +65,6 @@
               <input type="tel" id="phoneNumber" v-model="formData.numeroTelefono" :placeholder="t('register.phoneNumberPlaceholder')" required />
             </div>
           </div>
-
-          <!-- ===== CAMPOS DE DIRECCIÓN ACTUALIZADOS ===== -->
           <div class="form-row">
              <div class="form-group">
                 <label for="province">{{ t('register.province') }}</label>
@@ -104,14 +92,10 @@
             <label for="exactAddress">{{ t('register.exactAddress') }}</label>
             <input type="text" id="exactAddress" v-model="formData.direccion.senas" :placeholder="t('register.exactAddressPlaceholder')" required />
           </div>
-
-          <!-- Correo -->
           <div class="form-group-full">
             <label for="email">{{ t('register.email') }}</label>
             <input type="email" id="email" v-model="formData.email" :placeholder="t('register.emailPlaceholder')" required />
           </div>
-
-          <!-- Contraseña y Confirmación -->
           <div class="form-row">
             <div class="form-group">
               <label for="password">{{ t('register.password') }}</label>
@@ -122,10 +106,8 @@
               <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" :placeholder="t('register.passwordConfirmPlaceholder')" required />
             </div>
           </div>
-          
           <button type="submit" class="btn-submit">{{ t('register.registerButton') }}</button>
         </form>
-
         <div class="sub-link">
           <i18n-t keypath="register.loginPrompt" tag="span">
             <template #loginLink>
@@ -141,7 +123,6 @@
 </template>
 
 <script setup>
-// El script no necesita cambios
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';

@@ -1,27 +1,7 @@
 {
-  "header": {
-    "title": "Leilões",
-    "searchPlaceholder": "Buscar",
-    "searchAlert": "Por favor, insira um termo de pesquisa.",
-    "searching": "Buscando por: \"{query}\""
-  },
-  "userMenu": {
-    "login": "Entrar",
-    "register": "Registrar-se",
-    "profile": "Meu Perfil",
-    "logout": "Sair"
-  },
-  "login": {
-    "welcome": "BEM-VINDO",
-    "emailLabel": "E-mail",
-    "emailPlaceholder": "Digite seu e-mail",
-    "passwordPlaceholder": "Digite sua senha",
-    "loginButton": "Entrar",
-    "noAccountPrompt": "Ainda não tem uma conta? {createAccountLink}",
-    "createAccountNow": "Crie uma agora",
-    "carousel": {
-      "slide1": "O melhor gado do mercado",
-      "slide2": "Genética e Qualidade Superior"
-    }
-  }
+  "header": { "title": "Leilões", "searchPlaceholder": "Pesquisar", "searchAlert": "Por favor, insira um termo de pesquisa.", "searching": "Pesquisando por: \"{query}\"" },
+  "userMenu": { "login": "Entrar", "register": "Registrar-se", "profile": "Meu Perfil", "logout": "Sair" },
+  "login": { "welcome": "BEM-VINDO", "emailLabel": "E-mail", "emailPlaceholder": "Digite seu e-mail", "passwordPlaceholder": "Digite sua senha", "loginButton": "Entrar", "loggingIn": "Entrando...", "loginError": "Falha no login. Verifique seu e-mail e senha.", "noAccountPrompt": "Ainda não tem uma conta? {createAccountLink}", "createAccountNow": "Crie uma agora", "carousel": { "slide1": "O melhor gado do mercado", "slide2": "Genética e Qualidade Superior" } },
+  "register": { "title": "Registro de Conta Pessoal", "profilePhoto": "Foto de Perfil", "uploadHint": "Carregar imagem. Tamanho máx. 2MB", "uploadButton": "Carregar Imagem", "fullName": "Nome Completo", "fullNamePlaceholder": "Digite seu nome completo", "idType": "Tipo de ID", "idNumber": "Número de ID", "idNumberPlaceholder": "Digite o número de identificação", "phoneNumber": "Número de Telefone", "countryCode": "Código do país", "phoneNumberPlaceholder": "Digite o número de telefone", "province": "Província", "canton": "Cantão", "district": "Distrito", "exactAddress": "Endereço Exato", "exactAddressPlaceholder": "Digite os detalhes do seu endereço exato", "email": "E-mail", "emailPlaceholder": "Digite seu e-mail", "password": "Senha", "passwordPlaceholder": "Digite sua senha", "passwordConfirm": "Confirmação", "passwordConfirmPlaceholder": "Digite novamente a senha", "registerButton": "Registrar-se", "successMessage": "Registro bem-sucedido! Redirecionando para o login...", "errorMessage": "Erro no registro. Por favor, verifique seus dados.", "passwordMismatch": "As senhas não coincidem.", "carousel": { "slide1": "Qualidade que se vê, confiança que se sente.", "slide2": "Invista em genética, colha o futuro." }, "loginPrompt": "Já tem uma conta? ", "loginNow": "Entrar" },
+  "categories": { "weight": "Peso", "certification": "Certificação", "age": "Idade", "breed": "Raça", "gender": "Gênero", "vaccination": "Vacinação", "auctionDate": "Data do leilão", "price": "Preço", "personal": "Pessoal", "ranch": "Pecuária", "filters": "Filtros" }
 }
