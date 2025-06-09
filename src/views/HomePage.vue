@@ -7,7 +7,7 @@
       <CategoryFilterBar />
       
       <div class="catalog-container">
-        <p>Aquí se mostrarán las subastas filtradas por: <strong>{{ activeCategory }}</strong></p>
+        
       </div>
 
     </main>
