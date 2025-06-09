@@ -7,14 +7,14 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-// Middlewares
-app.use(cors()); // Permite peticiones desde otros orígenes (como tu frontend en localhost:5173)
-app.use(bodyParser.json()); // Parsea los cuerpos de las peticiones a JSON
 
-// --- "Base de Datos" Temporal en Memoria ---
+app.use(cors()); 
+app.use(bodyParser.json());
+
+
 const users = []; 
 
-// Función para generar fechas dinámicas para las subastas
+
 const generateAuctionDates = (daysUntilEnd) => {
   const now = new Date();
   const endDate = new Date();
@@ -25,7 +25,7 @@ const generateAuctionDates = (daysUntilEnd) => {
   };
 };
 
-// Datos de muestra para las subastas con la estructura completa
+
 const subastas = [
   {
     id: 1,
@@ -101,27 +101,27 @@ const subastas = [
     estado: "Viejo",
     imagen: "/img/ganado/brahman-rojo-toro.jpg",
     ganaderia: { nombre: "Hacienda San Pedro", logo: "" },
-    ...generateAuctionDates(2) // Termina en 2 días
+    ...generateAuctionDates(2) 
   }
-  // Puedes añadir más objetos de subastas aquí si quieres
+
 ];
 
 
-// --- Rutas de Autenticación ---
 
-// Endpoint de Registro
+
+
 app.post('/api/auth/register', (req, res) => {
   const newUser = req.body;
   console.log('Intento de registro recibido:', newUser);
 
-  // Validar si el correo ya existe
+
   const emailExists = users.some(user => user.email === newUser.email);
   if (emailExists) {
     console.log(`Error: El correo ${newUser.email} ya está en uso.`);
     return res.status(409).json({ message: 'El correo electrónico ya está en uso.' });
   }
 
-  // Si no existe, se añade al array
+
   users.push(newUser); 
   console.log('Usuario registrado exitosamente:', newUser);
   console.log('Lista de usuarios actualizada:', users); 
@@ -129,7 +129,7 @@ app.post('/api/auth/register', (req, res) => {
   res.status(201).json({ message: 'Usuario registrado exitosamente' });
 });
 
-// Endpoint de Login
+
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   console.log(`Intento de login para el correo: ${email}`);
@@ -152,15 +152,13 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 
-// --- Rutas de Subastas ---
 
-// Endpoint para obtener TODAS las subastas
 app.get('/api/subastas', (req, res) => {
   console.log('Petición GET a /api/subastas recibida.');
   res.status(200).json(subastas);
 });
 
-// Endpoint para obtener UNA subasta por su ID
+
 app.get('/api/subastas/:id', (req, res) => {
   const subastaId = parseInt(req.params.id, 10);
   console.log(`Petición GET a /api/subastas/${subastaId} recibida.`);
