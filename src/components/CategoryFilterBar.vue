@@ -6,11 +6,11 @@
           v-for="category in categories" 
           :key="category.name"
           class="filter-item"
-          :class="{ active: category.name === activeCategory }"
+          :class="{ active: category.name === subastasStore.activeFilter }"
           @click="selectCategory(category.name)"
         >
-          <img :src="category.icon" :alt="t(`categories.${category.name}`)" class="icon" />
-          <span>{{ t(`categories.${category.name}`) }}</span>
+          <img :src="category.icon" :alt="t(`categories.${category.langKey}`)" class="icon" />
+          <span>{{ t(`categories.${category.langKey}`) }}</span>
         </button>
       </div>
       
@@ -23,33 +23,37 @@
 </template>
 
 <script setup>
-import { ref, shallowRef } from 'vue';
+import { shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useSubastasStore } from '../store/subastas'; // ¡IMPORTANTE!
 
 const { t } = useI18n();
-
-const activeCategory = ref('weight');
+const subastasStore = useSubastasStore(); // Inicializamos el store
 
 const selectCategory = (name) => {
-  activeCategory.value = name;
-  console.log(`Categoría seleccionada: ${name}`);
+  // En lugar de un console.log, llamamos a la acción del store
+  subastasStore.setActiveFilter(name);
+  console.log(`Filtro cambiado a: ${name}`);
 };
 
+// Ajustamos los 'name' para que coincidan con el backend y el store
+// y añadimos 'langKey' para la traducción
 const categories = shallowRef([
-  { name: 'weight', icon: '/icons/peso.png' },
-  { name: 'certification', icon: '/icons/certificacion.png' },
-  { name: 'age', icon: '/icons/edad.png' },
-  { name: 'breed', icon: '/icons/raza.png' },
-  { name: 'gender', icon: '/icons/genero.png' },
-  { name: 'vaccination', icon: '/icons/vacunacion.png' },
-  { name: 'auctionDate', icon: '/icons/fecha.png' },
-  { name: 'price', icon: '/icons/precio.png' },
-  { name: 'personal', icon: '/icons/personal.png' },
-  { name: 'ranch', icon: '/icons/ganaderia.png' },
+  { name: 'peso',          langKey: 'weight',        icon: '/icons/peso.png' },
+  { name: 'certificacion', langKey: 'certification', icon: '/icons/certificacion.png' },
+  { name: 'edad',          langKey: 'age',           icon: '/icons/edad.png' },
+  { name: 'raza',          langKey: 'breed',         icon: '/icons/raza.png' },
+  { name: 'genero',        langKey: 'gender',        icon: '/icons/genero.png' },
+  { name: 'vacunacion',    langKey: 'vaccination',   icon: '/icons/vacunacion.png' },
+  { name: 'auctionDate',   langKey: 'auctionDate',   icon: '/icons/fecha.png' },
+  { name: 'precio',        langKey: 'price',         icon: '/icons/precio.png' },
+  { name: 'personal',      langKey: 'personal',      icon: '/icons/personal.png' },
+  { name: 'ganaderia',     langKey: 'ranch',         icon: '/icons/ganaderia.png' },
 ]);
 </script>
 
 <style scoped>
+/* Tus estilos existentes van aquí, no necesitan cambios */
 .nav-container {
   width: 100%;
   overflow: hidden;

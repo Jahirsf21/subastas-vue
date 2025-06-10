@@ -1,32 +1,42 @@
-<!-- src/views/Catalog.vue -->
 <template>
   <div class="catalog-page">
+    <!-- Sección de Carga -->
     <div v-if="subastasStore.isLoading" class="status-message">
       <div class="spinner"></div>
       <p>Cargando subastas...</p>
     </div>
+
+    <!-- Sección de Error -->
     <div v-else-if="subastasStore.error" class="status-message error">
       <h3>¡Oops! Algo salió mal</h3>
       <p>{{ subastasStore.error }}</p>
       <button @click="retryFetch" class="retry-button">Reintentar</button>
     </div>
-    <div v-else-if="subastasStore.subastas.length > 0" class="catalog-grid">
+
+    <!-- Catálogo con Resultados -->
+    <div v-else-if="subastasStore.processedSubastas.length > 0" class="catalog-grid">
       <AuctionCard 
-        v-for="subasta in subastasStore.subastas" 
+        v-for="subasta in subastasStore.processedSubastas" 
         :key="subasta.id" 
         :subasta="subasta"
         @click="openSubastaDetails(subasta)"
       />
     </div>
+
+    <!-- Sección de "No hay Resultados" -->
     <div v-else class="status-message">
-      <h3>No hay subastas disponibles</h3>
-      <p>Vuelve a intentarlo más tarde o ajusta tus filtros.</p>
+      <!-- ¡CAMBIO! Mensaje dinámico si hay una búsqueda activa -->
+      <h3 v-if="subastasStore.searchQuery">No se encontraron resultados para "{{ subastasStore.searchQuery }}"</h3>
+      <h3 v-else>No hay subastas disponibles</h3>
+      <p>Intenta con otra búsqueda o ajusta tus filtros.</p>
     </div>
   </div>
-  <div v-if="selectedSubasta" class="modal-overlay" @click.self="closeSubastaDetails">
+
+  <!-- Modal para los detalles de la subasta -->
+  <div v-if="selectedSubastaId" class="modal-overlay" @click.self="closeSubastaDetails">
     <div class="modal-content">
       <button @click="closeSubastaDetails" class="close-button">×</button>
-      <SubastaDetails :subastaData="selectedSubasta" />
+      <SubastaDetails :subastaId="selectedSubastaId" />
     </div>
   </div>
 </template>
@@ -38,10 +48,13 @@ import AuctionCard from '../components/AuctionCard.vue';
 import SubastaDetails from '../components/SubastaDetails.vue'; 
 
 const subastasStore = useSubastasStore();
-const selectedSubasta = ref(null);
+const selectedSubastaId = ref(null);
 
 onMounted(() => {
-  subastasStore.fetchSubastas();
+  // Carga las subastas si el array en el store está vacío
+  if (subastasStore.subastas.length === 0) {
+    subastasStore.fetchSubastas();
+  }
 });
 
 const retryFetch = () => {
@@ -49,10 +62,11 @@ const retryFetch = () => {
 };
 
 const openSubastaDetails = (subasta) => {
-  selectedSubasta.value = subasta;
+  selectedSubastaId.value = subasta.id;
 };
+
 const closeSubastaDetails = () => {
-  selectedSubasta.value = null;
+  selectedSubastaId.value = null;
 };
 </script>
 
@@ -102,7 +116,6 @@ const closeSubastaDetails = () => {
   border-color: #aaa;
 }
 
-/* Spinner de carga */
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   width: 36px;

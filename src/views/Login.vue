@@ -18,6 +18,14 @@
       </div>
     </div>
     <div class="form-panel">
+      <!-- BOTÓN DE REGRESO A HOME -->
+      <button @click="goToHome" class="home-button" aria-label="Volver a la página de inicio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
         <h1>{{ t('login.welcome') }}</h1>
@@ -42,7 +50,7 @@
         <div class="signup-link">
           <i18n-t keypath="login.noAccountPrompt" tag="span">
             <template #createAccountLink>
-              <router-link to="/register">
+              <router-link to="/choose-account">
                 <strong>{{ t('login.createAccountNow') }}</strong>
               </router-link>
             </template>
@@ -58,6 +66,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2'; // ¡IMPORTANTE! Importar SweetAlert2
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -71,6 +80,9 @@ const loading = ref(false);
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'));
 const togglePasswordVisibility = () => { showPassword.value = !showPassword.value; };
 
+const goToHome = () => {
+  router.push('/');
+};
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
@@ -80,19 +92,17 @@ const handleLogin = async () => {
   loading.value = true; 
 
   try {
-    const user = {
-      email: email.value,
-      password: password.value,
-    };
-    
-
-    await authStore.login(user);
-    
+    await authStore.login({ email: email.value, password: password.value });
     router.push('/'); 
-
   } catch (error) {
     console.error("Error en el login:", error);
-    alert(t('login.loginError'));
+    // ¡CAMBIO! Alerta de error con SweetAlert2
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de Autenticación',
+      text: t('login.loginError'),
+      confirmButtonColor: '#6D4C41'
+    });
   } finally {
     loading.value = false; 
   }
@@ -105,30 +115,20 @@ const carouselItems = computed(() => [
 
 const currentIndex = ref(0);
 let intervalId = null;
-
 const currentSlide = computed(() => carouselItems.value[currentIndex.value]);
-
-const nextSlide = () => {
-  currentIndex.value = (currentIndex.value + 1) % carouselItems.value.length;
-};
-
+const nextSlide = () => { currentIndex.value = (currentIndex.value + 1) % carouselItems.value.length; };
 const goToSlide = (index) => {
   currentIndex.value = index;
   clearInterval(intervalId);
   intervalId = setInterval(nextSlide, 3000);
 };
 
-onMounted(() => {
-  intervalId = setInterval(nextSlide, 3000); 
-});
-
-onUnmounted(() => {
-  clearInterval(intervalId);
-});
+onMounted(() => { intervalId = setInterval(nextSlide, 3000); });
+onUnmounted(() => { clearInterval(intervalId); });
 </script>
 
 <style scoped>
-
+/* Tus estilos no necesitan cambios */
 .login-page {
   position: fixed;
   top: 0;
@@ -136,7 +136,6 @@ onUnmounted(() => {
   width: 100%;
   height: 100vh; 
   z-index: 100;
-
   --font-heading: 'Merriweather', serif;
   --font-body: 'Lato', sans-serif;
   --color-primary: #6D4C41; 
@@ -147,7 +146,6 @@ onUnmounted(() => {
   --color-white: #FFFFFF;
   display: flex;
   font-family: var(--font-body);
-
 }
 
 .image-panel {
@@ -214,6 +212,24 @@ onUnmounted(() => {
   flex-direction: column; 
   background-color: var(--color-background);
   padding: 30px;
+  position: relative;
+}
+
+.home-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--color-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+.home-button:hover {
+  background-color: #EAE3E0;
+  color: var(--color-primary);
 }
 
 .logo {
@@ -246,8 +262,6 @@ h1 {
 .input-group { margin-bottom: 1.5rem; text-align: left; }
 .password-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 label { font-weight: 700; color: var(--color-text); }
-.forgot-password { font-size: 0.9rem; color: var(--color-secondary); text-decoration: none; }
-.forgot-password:hover { text-decoration: underline; }
 input { width: 100%; padding: 14px 20px; border: none; border-radius: 8px; background-color: var(--color-background-input); font-size: 1rem; color: var(--color-text); box-sizing: border-box; }
 input::placeholder { color: var(--color-secondary); }
 .password-wrapper { position: relative; }
@@ -269,5 +283,6 @@ input::placeholder { color: var(--color-secondary); }
   .image-panel { flex: none; height: 300px; }
   .form-panel { padding: 20px; }
   .form-content { flex-grow: 0; margin: 2rem auto; }
+  .home-button { top: 20px; left: 20px; }
 }
 </style>

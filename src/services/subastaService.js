@@ -24,6 +24,12 @@ class SubastaService {
     // Hace una petición GET a http://localhost:3000/api/subastas/{id}
     return axios.get(API_URL + `subastas/${id}`);
   }
+
+  placeBid(subastaId, bidData) {
+    // bidData = { montoPuja: number, pujador: string }
+    return axios.post(API_URL + `subastas/${subastaId}/pujar`, bidData);
+  }
+
 }
 
 // Exportamos una instancia de la clase para poder usarla en otros archivos

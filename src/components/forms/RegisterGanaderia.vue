@@ -33,7 +33,7 @@
               <input type="text" id="fullName" v-model="formData.nombreCompleto" :placeholder="t('register.fullNamePlaceholder')" required />
             </div>
             <div class="form-group">
-              <label for="birthDate">Fecha de Nacimiento</label>
+              <label for="birthDate">{{ t('register.birthDate') }}</label>
               <input type="date" id="birthDate" v-model="formData.fechaNacimiento" required />
             </div>
           </div>
@@ -125,8 +125,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../store/auth';
+import { useAuthStore } from '../../store/auth';
 import { useI18n } from 'vue-i18n';
+import Swal from 'sweetalert2';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -160,9 +161,15 @@ const handleFileChange = (event) => {
 
 const handleRegister = async () => {
   if (formData.password !== formData.passwordConfirmation) {
-    alert(t('register.passwordMismatch'));
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: t('register.passwordMismatch'),
+      confirmButtonColor: '#6D4C41'
+    });
     return;
   }
+  
   try {
     const userData = {
       nombreCompleto: formData.nombreCompleto,
@@ -175,11 +182,27 @@ const handleRegister = async () => {
       direccion: `${formData.direccion.provincia}, ${formData.direccion.canton}, ${formData.direccion.distrito}. ${formData.direccion.senas}`,
     };
     await authStore.register(userData);
-    alert(t('register.successMessage'));
-    router.push('/login');
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Registro Exitoso!',
+      text: 'Serás redirigido a la página de inicio de sesión.',
+      timer: 2500,
+      timerProgressBar: true,
+      showConfirmButton: false
+    }).then(() => {
+      router.push('/login');
+    });
+
   } catch (error) {
     console.error('Registration failed:', error);
-    alert(t('register.errorMessage'));
+    const errorMessage = error.response?.data?.message || t('register.errorMessage');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de Registro',
+      text: errorMessage,
+      confirmButtonColor: '#6D4C41'
+    });
   }
 };
 
@@ -203,7 +226,7 @@ onUnmounted(() => { clearInterval(intervalId); });
 </script>
 
 <style scoped>
-/* Los estilos no necesitan cambios */
+/* Tus estilos no necesitan cambios */
 .register-page {
   position: fixed;
   top: 0;

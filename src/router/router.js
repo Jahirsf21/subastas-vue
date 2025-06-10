@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
 import Login from '../views/Login.vue';
-import Register from '../views/Register.vue';
 import Profile from '../views/Profile.vue';
+import RegisterGanaderia from '../components/forms/RegisterGanaderia.vue'
+import RegisterPersonal from '../components/forms/RegisterPersonal.vue';
+import SelectTypeAccount from '../components/SelectTypeAccount.vue'
 
 const routes = [
     {
@@ -16,13 +18,25 @@ const routes = [
         component: Login,
         meta: { guest: true } 
     },
- 
     {
-        path: '/register',
-        name: 'register',
-        component: Register,
+        path: '/selectTypeAccount',
+        name: 'typeAccount',
+        component:SelectTypeAccount,
+        meta: { guest: true } 
+    },
+    {
+        path: '/registerGanaderia',
+        name: 'registerGanaderia',
+        component: RegisterGanaderia,
         meta: { guest: true }
     },
+    {
+        path: '/registerPersonal',
+        name: 'registerPersonal',
+        component: RegisterPersonal,
+        meta: { guest: true }
+    },
+
     {
         path: '/perfil',
         name: 'profile',
@@ -45,7 +59,7 @@ router.beforeEach((to, from, next) => {
         next({ name: 'login' });
     }
     else if (to.meta.guest && isLoggedIn) {
-        next({ name: 'profile' });
+        next({ name: 'home' });
     }
     else {
         next();
