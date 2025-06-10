@@ -3,5 +3,20 @@
   "userMenu": { "login": "Iniciar Sesión", "register": "Registrarse", "profile": "Mi Perfil", "logout": "Cerrar Sesión" },
   "login": { "welcome": "BIENVENIDO", "emailLabel": "Correo", "emailPlaceholder": "Ingresa tu correo", "passwordPlaceholder": "Ingresa tu contraseña", "loginButton": "Iniciar sesión", "loggingIn": "Iniciando sesión...", "loginError": "Error al iniciar sesión. Verifique su correo y contraseña.", "noAccountPrompt": "¿Todavía no tienes una cuenta? {createAccountLink}", "createAccountNow": "Crea una ahora", "carousel": { "slide1": "El mejor ganado del mercado", "slide2": "Genética y Calidad Superior" } },
   "register": { "title": "Registro de cuenta personal", "profilePhoto": "Foto de perfil", "uploadHint": "Cargar imagen. Máx 2MB", "uploadButton": "Cargar", "fullName": "Nombre Completo", "fullNamePlaceholder": "Ingrese su nombre completo", "birthDate": "Fecha de Nacimiento", "idType": "Tipo de Identificación", "idNumber": "Número de Identificación", "idNumberPlaceholder": "Ingrese su número", "phoneNumber": "Número de teléfono", "countryCode": "Código de país", "phoneNumberPlaceholder": "Ingrese su número", "province": "Provincia", "canton": "Cantón", "district": "Distrito", "exactAddress": "Dirección Exacta", "exactAddressPlaceholder": "Ingrese su dirección", "email": "Correo electrónico", "emailPlaceholder": "Ingrese su correo", "password": "Contraseña", "passwordPlaceholder": "Ingrese su contraseña", "passwordConfirm": "Confirmar Contraseña", "passwordConfirmPlaceholder": "Vuelva a ingresar la contraseña", "registerButton": "Registrarse", "successMessage": "¡Registro exitoso! Redirigiendo...", "errorMessage": "Error en el registro. Verifique sus datos.", "passwordMismatch": "Las contraseñas no coinciden.", "carousel": { "slide1": "Calidad que se ve, confianza que se siente.", "slide2": "Invierte en genética, cosecha el futuro." }, "loginPrompt": "¿Ya tienes una cuenta? {loginLink}", "loginNow": "Inicia sesión" },
-  "categories": { "weight": "Peso", "certification": "Certificación", "age": "Edad", "breed": "Raza", "gender": "Género", "vaccination": "Vacunación", "auctionDate": "Fecha subasta", "price": "Precio", "personal": "Personal", "ranch": "Ganadería", "filters": "Filtros" }
+  "categories": { "weight": "Peso", "certification": "Certificación", "age": "Edad", "breed": "Raza", "gender": "Género", "vaccination": "Vacunación", "auctionDate": "Fecha subasta", "price": "Precio", "personal": "Personal", "ranch": "Ganadería", "filters": "Filtros" },
+  "profile": {
+    "title": "Cuenta",
+    "session": "Sesión no iniciada",
+    "your_accounts": "Tus cuentas",
+    "personal_profile": "Perfil Personal",
+    "ranch_profile": "Perfil Ganadería",
+    "add_account": "Agrega una nueva cuenta",
+    "general": "General",
+    "payment_methods": "Métodos de Pago",
+    "switch_account": "Cambiar cuenta",
+    "auction_status": "Estado Subastas",
+    "help": "Ayuda",
+    "logout": "Cerrar sesión",
+    "delete_account": "Eliminar cuenta"
+  }
 }

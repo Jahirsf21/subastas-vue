@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '../store/auth'; 
+
 import HomePage from '../views/HomePage.vue';
 import Login from '../views/Login.vue';
 import Profile from '../views/Profile.vue';
-import RegisterGanaderia from '../components/forms/RegisterGanaderia.vue'
+import RegisterGanaderia from '../components/forms/RegisterGanaderia.vue';
 import RegisterPersonal from '../components/forms/RegisterPersonal.vue';
-import SelectTypeAccount from '../components/SelectTypeAccount.vue'
+import SelectTypeAccount from '../components/SelectTypeAccount.vue';
 
 const routes = [
     {
@@ -19,26 +21,24 @@ const routes = [
         meta: { guest: true } 
     },
     {
-        path: '/selectTypeAccount',
-        name: 'typeAccount',
-        component:SelectTypeAccount,
-        meta: { guest: true } 
+        path: '/SelectTypeAccount', 
+        name: 'SelectTypeAccount',
+        component: SelectTypeAccount,
     },
     {
         path: '/registerGanaderia',
         name: 'registerGanaderia',
         component: RegisterGanaderia,
-        meta: { guest: true }
+        meta: { profileType: 'Ganaderia' } // Añadimos metadatos
     },
     {
         path: '/registerPersonal',
         name: 'registerPersonal',
         component: RegisterPersonal,
-        meta: { guest: true }
+        meta: { profileType: 'Personal' } // Añadimos metadatos
     },
-
     {
-        path: '/perfil',
+        path: '/profile',
         name: 'profile',
         component: Profile,
         meta: { requiresAuth: true }
@@ -50,20 +50,35 @@ const router = createRouter({
     routes
 });
 
+
 router.beforeEach((to, from, next) => {
-
-    const isLoggedIn = !!localStorage.getItem('user');
-
-
+    const authStore = useAuthStore();
+    const isLoggedIn = authStore.isLoggedIn;
+    const user = authStore.currentUser;
     if (to.meta.requiresAuth && !isLoggedIn) {
-        next({ name: 'login' });
+        return next({ name: 'login' });
     }
-    else if (to.meta.guest && isLoggedIn) {
-        next({ name: 'home' });
+
+
+    if (to.meta.guest && isLoggedIn) {
+        return next({ name: 'home' });
     }
-    else {
-        next();
+    if (isLoggedIn && to.meta.profileType) {
+        if (to.meta.profileType === 'Personal' && user?.perfilPersonal) {
+            return next({ name: 'home' }); 
+        }
+        if (to.meta.profileType === 'Ganaderia' && user?.perfilGanaderia) {
+            console.log('Acceso bloqueado: Ya tienes un perfil de ganadería.');
+            return next({ name: 'home' }); 
+        }
     }
+    if (isLoggedIn && to.name === 'chooseAccount') {
+        if (user?.perfilPersonal && user?.perfilGanaderia) {
+
+            return next({ name: 'home' }); 
+        }
+    }
+    next();
 });
 
 export default router;

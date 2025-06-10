@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
@@ -15,8 +16,8 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// --- 3. Base de Datos en Memoria (con estructura de vendedor actualizada) ---
-const users = []; 
+// --- 3. PERSISTENCIA DE DATOS CON ARCHIVO JSON ---
+const DB_FILE = path.join(__dirname, 'db.json');
 
 const generateAuctionDates = (daysUntilEnd) => {
   const now = new Date();
@@ -28,168 +29,122 @@ const generateAuctionDates = (daysUntilEnd) => {
   };
 };
 
-const subastas = [
-  { 
-    id: 1, 
-    titulo: "Brahman gris", 
-    descripcion: "Toro de alta genética, ideal para reproducción. Excelente temperamento y desarrollo muscular.", 
-    precioInicial: 1200000.00, 
-    raza: "Brahman", 
-    edad: "3 años", 
-    peso: "1300 kg", 
-    genetica: "Pura", 
-    certificaciones: "/certificados/cert1.pdf", 
-    imagenes: ["/brahman-gris-toro.png"], 
-    pujador: "Jose Emilio", 
-    puja: 1250000.00, 
-    genero: "Macho",
-    categoria: "Toro",
-    estado: "Nuevo", 
-    imagen: "/brahman-gris-toro.png", 
-    vendedor: {
-      tipo: 'Ganaderia', // 'Ganaderia' o 'Personal'
-      nombre: "Ganadería El Sol",
-      logo: "/logo-ganaderia.png" 
-    },
-    ...generateAuctionDates(3) 
-  },
-  { 
-    id: 2, 
-    titulo: "Vaca Jersey Lechera", 
-    descripcion: "Vaca de primer parto, excelente producción lechera.", 
-    precioInicial: 900000.00, 
-    raza: "Jersey", 
-    edad: "4 años", 
-    peso: "450 kg", 
-    genetica: "Pura", 
-    certificaciones: "/certificados/cert2.pdf", 
-    imagenes: ["/brahman-blanco.png"], 
-    pujador: "Ernesto", 
-    puja: 920000.00, 
-    genero: "Hembra",
-    categoria: "Vaca",
-    estado: "Nuevo", 
-    imagen: "/brahman-blanco.png", 
-    vendedor: {
-      tipo: 'Personal',
-      nombre: "Carlos Rojas Vega",
-      logo: null // O un avatar genérico '/avatar-personal.png'
-    },
-    ...generateAuctionDates(1) 
-  },
-  { 
-    id: 4, 
-    titulo: "Brahman rojo", 
-    descripcion: "Ternera de destete con excelente potencial para futura madre.", 
-    precioInicial: 1140000.00, 
-    raza: "Brahman", 
-    edad: "10 meses", 
-    peso: "250 kg", 
-    genetica: "7/8 Brahman", 
-    certificaciones: "/certificados/cert4.pdf", 
-    imagenes: ["/vaca4.png"], 
-    pujador: null, 
-    puja: 0, 
-    genero: "Hembra",
-    categoria: "Ternera",
-    estado: "Nuevo", 
-    imagen: "/vaca4.png", 
-    vendedor: {
-      tipo: 'Ganaderia',
-      nombre: "Ganadería Colono Real S.A.",
-      logo: "/logo-ganaderia.png"
-    },
-    ...generateAuctionDates(5) 
-  },
-  { 
-    id: 8, 
-    titulo: "Novillo Gyr", 
-    descripcion: "Novillo listo para engorde, excelente conversión alimenticia.", 
-    precioInicial: 240000.00, 
-    raza: "Gyr", 
-    edad: "18 meses", 
-    peso: "350 kg", 
-    genetica: "F1 (Gyr x Holstein)", 
-    certificaciones: "/certificados/cert8.pdf", 
-    imagenes: ["/vaca7.png"], 
-    pujador: "Hacienda San Pedro", 
-    puja: 240000.00, 
-    genero: "Macho",
-    categoria: "Novillo",
-    estado: "Nuevo", 
-    imagen: "/vaca7.png", 
-    vendedor: {
-      tipo: 'Ganaderia',
-      nombre: "Hacienda San Pedro",
-      logo: "/logo-ganaderia.png"
-    },
-    ...generateAuctionDates(2) 
-  }
-];
+const getDefaultData = () => ({
+  users: [],
+  subastas: []
+});
+
+const readDB = () => {
+    try {
+        if (fs.existsSync(DB_FILE)) {
+            const data = fs.readFileSync(DB_FILE, 'utf8');
+            const jsonData = JSON.parse(data);
+            // Asegurarse de que los arrays existan
+            jsonData.users = jsonData.users || [];
+            jsonData.subastas = jsonData.subastas || getDefaultData().subastas;
+            return jsonData;
+        }
+    } catch (error) {
+        console.error("Error al leer db.json:", error);
+    }
+    return getDefaultData();
+};
+
+const writeDB = (data) => {
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    } catch (error) {
+        console.error("Error al escribir en db.json:", error);
+    }
+};
+
+let db = readDB();
 
 
 // --- 4. Rutas de la API (Endpoints) ---
-app.post('/api/auth/register', (req, res) => {
-    const newUser = req.body;
-    const emailExists = users.some(user => user.email === newUser.email);
-    if (emailExists) {
-        return res.status(409).json({ message: 'El correo electrónico ya está en uso.' });
-    }
-    users.push(newUser); 
-    res.status(201).json({ message: 'Usuario registrado exitosamente' });
-});
 
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
-    const user = users.find(u => u.email === email && u.password === password);
+    const user = db.users.find(u => u.email === email && u.password === password);
     if (user) {
-        return res.json({ token: 'fake-jwt-token-for-development', user: { email: user.email, nombre: user.nombreCompleto } });
+        console.log(`Usuario ${email} autenticado.`);
+        return res.json({ token: 'fake-jwt-token-for-dev', user });
     }
     res.status(401).json({ message: 'Credenciales inválidas' });
 });
 
+app.post('/api/auth/register', (req, res) => {
+    const { email, password, tipoCuenta, ...profileData } = req.body;
+
+    if (!email || !tipoCuenta || Object.keys(profileData).length === 0) {
+        return res.status(400).json({ message: "Faltan datos para el registro." });
+    }
+
+    let user = db.users.find(u => u.email === email);
+
+    if (!user) {
+        if (!password) return res.status(400).json({ message: "La contraseña es requerida." });
+        user = { id: Date.now(), email, password, perfilPersonal: null, perfilGanaderia: null };
+        db.users.push(user);
+    }
+
+    if (tipoCuenta === 'Personal') {
+        if (user.perfilPersonal) return res.status(409).json({ message: 'Ya existe un perfil personal.' });
+        user.perfilPersonal = profileData;
+    } else if (tipoCuenta === 'Ganaderia') {
+        if (user.perfilGanaderia) return res.status(409).json({ message: 'Ya existe un perfil de ganadería.' });
+        user.perfilGanaderia = profileData;
+    } else {
+        return res.status(400).json({ message: 'Tipo de cuenta no válido.' });
+    }
+    
+    writeDB(db);
+    res.status(201).json({ message: `Registro de perfil '${tipoCuenta}' exitoso`, user: user });
+});
+
+app.delete('/api/auth/account', (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email y contraseña requeridos." });
+
+    const userIndex = db.users.findIndex(u => u.email === email && u.password === password);
+    if (userIndex === -1) return res.status(404).json({ message: "Usuario no encontrado o credenciales incorrectas." });
+
+    db.users.splice(userIndex, 1);
+    writeDB(db);
+    res.status(200).json({ message: "Cuenta eliminada exitosamente." });
+});
+
 app.get('/api/subastas', (req, res) => {
-  res.status(200).json(subastas);
+  res.status(200).json(db.subastas);
 });
 
 app.get('/api/subastas/:id', (req, res) => {
   const subastaId = parseInt(req.params.id, 10);
-  const subasta = subastas.find(s => s.id === subastaId);
-  if (subasta) {
-    res.status(200).json(subasta);
-  } else {
-    res.status(404).json({ message: "Subasta no encontrada" });
-  }
+  const subasta = db.subastas.find(s => s.id === subastaId);
+  if (subasta) res.status(200).json(subasta);
+  else res.status(404).json({ message: "Subasta no encontrada" });
 });
 
 app.post('/api/subastas/:id/pujar', (req, res) => {
   const subastaId = parseInt(req.params.id, 10);
   const { montoPuja, pujador } = req.body;
 
-  if (!montoPuja || !pujador) {
-    return res.status(400).json({ message: "Faltan datos para realizar la puja." });
-  }
+  if (!montoPuja || !pujador) return res.status(400).json({ message: "Faltan datos." });
   
-  const subastaIndex = subastas.findIndex(s => s.id === subastaId);
-  if (subastaIndex === -1) {
-    return res.status(404).json({ message: "Subasta no encontrada" });
-  }
-
-  const subasta = subastas[subastaIndex];
+  const subasta = db.subastas.find(s => s.id === subastaId);
+  if (!subasta) return res.status(404).json({ message: "Subasta no encontrada." });
   
-  if (new Date(subasta.fechaFinal) < new Date()) {
-    return res.status(400).json({ message: "Esta subasta ya ha finalizado." });
-  }
+  if (new Date(subasta.fechaFinal) < new Date()) return res.status(400).json({ message: "Esta subasta ya finalizó." });
 
   const pujaActual = subasta.puja || subasta.precioInicial;
-  if (montoPuja <= pujaActual) {
-    return res.status(400).json({ message: `Tu puja debe ser mayor a la puja actual de ${pujaActual}` });
-  }
+  if (montoPuja <= pujaActual) return res.status(400).json({ message: `Puja debe ser mayor a ${pujaActual}` });
 
   subasta.puja = montoPuja;
   subasta.pujador = pujador;
 
-  console.log(`Nueva puja en subasta ${subastaId}: ${montoPuja} por ${pujador}`);
+  // GUARDAR LOS CAMBIOS EN LA SUBASTA
+  writeDB(db);
+
   res.status(200).json(subasta);
 });
 

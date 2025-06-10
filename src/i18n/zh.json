@@ -3,5 +3,20 @@
   "userMenu": { "login": "登录", "register": "注册", "profile": "我的个人资料", "logout": "登出" },
   "login": { "welcome": "欢迎", "emailLabel": "电子邮件", "emailPlaceholder": "输入您的电子邮件", "passwordPlaceholder": "输入您的密码", "loginButton": "登录", "loggingIn": "登录中...", "loginError": "登录错误。请检查您的电子邮件和密码。", "noAccountPrompt": "还没有帐户？{createAccountLink}", "createAccountNow": "立即创建", "carousel": { "slide1": "市场上最好的牛", "slide2": "卓越的遗传与品质" } },
   "register": { "title": "个人账户注册", "profilePhoto": "头像", "uploadHint": "上传图片。最大2MB", "uploadButton": "上传", "fullName": "全名", "fullNamePlaceholder": "输入您的全名", "birthDate": "出生日期", "idType": "证件类型", "idNumber": "证件号码", "idNumberPlaceholder": "输入您的证件号码", "phoneNumber": "电话号码", "countryCode": "国家代码", "phoneNumberPlaceholder": "输入您的电话号码", "province": "省份", "canton": "城市", "district": "地区", "exactAddress": "详细地址", "exactAddressPlaceholder": "输入您的地址", "email": "电子邮件", "emailPlaceholder": "输入您的电子邮件", "password": "密码", "passwordPlaceholder": "输入您的密码", "passwordConfirm": "确认密码", "passwordConfirmPlaceholder": "再次输入您的密码", "registerButton": "注册", "successMessage": "注册成功！正在重定向...", "errorMessage": "注册失败。请检查您的数据。", "passwordMismatch": "密码不匹配。", "carousel": { "slide1": "品质看得见，信任感受得到。", "slide2": "投资遗传学，收获未来。" }, "loginPrompt": "已经有账户了？{loginLink}", "loginNow": "登录" },
-  "categories": { "weight": "重量", "certification": "认证", "age": "年龄", "breed": "品种", "gender": "性别", "vaccination": "疫苗接종", "auctionDate": "拍卖日期", "price": "价格", "personal": "个人", "ranch": "牧场", "filters": "筛选" }
+  "categories": { "weight": "重量", "certification": "认证", "age": "年龄", "breed": "品种", "gender": "性别", "vaccination": "疫苗接种", "auctionDate": "拍卖日期", "price": "价格", "personal": "个人", "ranch": "牧场", "filters": "筛选" },
+  "profile": {
+    "title": "帐户",
+    "session": "未登录",
+    "your_accounts": "您的帐户",
+    "personal_profile": "个人资料",
+    "ranch_profile": "牧场资料",
+    "add_account": "添加新帐户",
+    "general": "常规",
+    "payment_methods": "支付方式",
+    "switch_account": "切换帐户",
+    "auction_status": "拍卖状态",
+    "help": "帮助",
+    "logout": "登出",
+    "delete_account": "删除帐户"
+  }
 }

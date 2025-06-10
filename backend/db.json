@@ -1,0 +1,148 @@
+{
+  "users": [
+    {
+      "id": 1749524383736,
+      "email": "deislhersanchezfunez@gmail.com",
+      "password": "jahir",
+      "perfilPersonal": {
+        "nombreCompleto": "Jahir sanchez funez",
+        "fechaNacimiento": "2004-08-12",
+        "tipoCedula": "Cedula",
+        "cedula": "703090936",
+        "telefono": "+50662435191",
+        "direccion": "Limón, Limón, Central. Barrio San Juan"
+      },
+      "perfilGanaderia": {
+        "nombre": "Caracolitos",
+        "fechaFundacion": "1992-09-12",
+        "cedulaJuridica": "70303090936",
+        "telefono": "+50662435191",
+        "direccion": "Limón, Limón, Central. Barrio San Juan"
+      }
+    },
+    {
+      "id": 1749524888159,
+      "email": "Jahirsanchezfunez@gmail.com",
+      "password": "jahir",
+      "perfilPersonal": {
+        "nombreCompleto": "Emili Robles",
+        "fechaNacimiento": "2004-05-24",
+        "tipoCedula": "Cedula",
+        "cedula": "70303090936",
+        "telefono": "+50662435191",
+        "direccion": "Limón, Limón, Central. Barrio San Juan"
+      },
+      "perfilGanaderia": null
+    }
+  ],
+  "subastas": [
+    {
+      "id": 1,
+      "titulo": "Brahman gris",
+      "descripcion": "Toro de alta genética, ideal para reproducción. Excelente temperamento y desarrollo muscular.",
+      "precioInicial": 1200000,
+      "raza": "Brahman",
+      "edad": "3 años",
+      "peso": "1300 kg",
+      "genetica": "Pura",
+      "certificaciones": "/certificados/cert1.pdf",
+      "imagenes": [
+        "/brahman-gris-toro.png"
+      ],
+      "pujador": "Emili Robles",
+      "puja": 12520000,
+      "genero": "Macho",
+      "categoria": "Toro",
+      "estado": "Nuevo",
+      "imagen": "/brahman-gris-toro.png",
+      "vendedor": {
+        "tipo": "Ganaderia",
+        "nombre": "Ganadería El Sol",
+        "logo": "/logo-ganaderia.png"
+      },
+      "fechaInicio": "2025-06-10T02:58:44.570Z",
+      "fechaFinal": "2025-06-13T02:58:44.570Z"
+    },
+    {
+      "id": 2,
+      "titulo": "Vaca Jersey Lechera",
+      "descripcion": "Vaca de primer parto, excelente producción lechera.",
+      "precioInicial": 900000,
+      "raza": "Jersey",
+      "edad": "4 años",
+      "peso": "450 kg",
+      "genetica": "Pura",
+      "certificaciones": "/certificados/cert2.pdf",
+      "imagenes": [
+        "/brahman-blanco.png"
+      ],
+      "pujador": "Ernesto",
+      "puja": 920000,
+      "genero": "Hembra",
+      "categoria": "Vaca",
+      "estado": "Nuevo",
+      "imagen": "/brahman-blanco.png",
+      "vendedor": {
+        "tipo": "Personal",
+        "nombre": "Carlos Rojas Vega",
+        "logo": "/logo-ganaderia.png"
+      },
+      "fechaInicio": "2025-06-10T02:58:44.570Z",
+      "fechaFinal": "2025-06-11T02:58:44.570Z"
+    },
+    {
+      "id": 4,
+      "titulo": "Brahman rojo",
+      "descripcion": "Ternera de destete con excelente potencial para futura madre.",
+      "precioInicial": 1140000,
+      "raza": "Brahman",
+      "edad": "10 meses",
+      "peso": "250 kg",
+      "genetica": "7/8 Brahman",
+      "certificaciones": "/certificados/cert4.pdf",
+      "imagenes": [
+        "/vaca4.png"
+      ],
+      "pujador": "Jahir sanchez funez",
+      "puja": 1146000,
+      "genero": "Hembra",
+      "categoria": "Ternera",
+      "estado": "Nuevo",
+      "imagen": "/vaca4.png",
+      "vendedor": {
+        "tipo": "Ganaderia",
+        "nombre": "Ganadería Colono Real S.A.",
+        "logo": "/logo-ganaderia.png"
+      },
+      "fechaInicio": "2025-06-10T02:58:44.570Z",
+      "fechaFinal": "2025-06-15T02:58:44.570Z"
+    },
+    {
+      "id": 8,
+      "titulo": "Novillo Gyr",
+      "descripcion": "Novillo listo para engorde, excelente conversión alimenticia.",
+      "precioInicial": 240000,
+      "raza": "Gyr",
+      "edad": "18 meses",
+      "peso": "350 kg",
+      "genetica": "F1 (Gyr x Holstein)",
+      "certificaciones": "/certificados/cert8.pdf",
+      "imagenes": [
+        "/vaca7.png"
+      ],
+      "pujador": "Hacienda San Pedro",
+      "puja": 240000,
+      "genero": "Macho",
+      "categoria": "Novillo",
+      "estado": "Nuevo",
+      "imagen": "/vaca7.png",
+      "vendedor": {
+        "tipo": "Ganaderia",
+        "nombre": "Hacienda San Pedro",
+        "logo": "/logo-ganaderia.png"
+      },
+      "fechaInicio": "2025-06-10T02:58:44.570Z",
+      "fechaFinal": "2025-06-12T02:58:44.570Z"
+    }
+  ]
+}

@@ -13,47 +13,48 @@
     <div class="form-panel">
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
-        <h1>{{ t('register.title') }}</h1>
+        <h1>Registro de Ganadería</h1>
         
         <form @submit.prevent="handleRegister">
           <div class="form-group-full">
-            <label>{{ t('register.profilePhoto') }}</label>
+            <label>Logo de la Ganadería</label>
             <div class="file-uploader">
               <div class="file-info">
                 <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <span>{{ t('register.uploadHint') }}</span>
+                <span>Cargar un logo. Tamaño máximo 2MB</span>
               </div>
-              <label for="file-input" class="btn btn-upload">{{ t('register.uploadButton') }}</label>
+              <label for="file-input" class="btn btn-upload">Cargar Logo</label>
               <input id="file-input" type="file" @change="handleFileChange" accept="image/*" hidden />
             </div>
           </div>
+          
           <div class="form-row">
             <div class="form-group">
-              <label for="fullName">{{ t('register.fullName') }}</label>
-              <input type="text" id="fullName" v-model="formData.nombreCompleto" :placeholder="t('register.fullNamePlaceholder')" required />
+              <label for="ganaderiaName">Nombre de la Ganadería</label>
+              <input type="text" id="ganaderiaName" v-model="formData.nombreCompleto" placeholder="Ingrese nombre de la ganadería" required />
             </div>
             <div class="form-group">
-              <label for="birthDate">{{ t('register.birthDate') }}</label>
-              <input type="date" id="birthDate" v-model="formData.fechaNacimiento" required />
+              <label for="fundacionDate">Fecha de Fundación</label>
+              <input type="date" id="fundacionDate" v-model="formData.fechaNacimiento" required />
             </div>
           </div>
+
           <div class="form-row">
             <div class="form-group">
-              <label for="idType">{{ t('register.idType') }}</label>
+              <label for="idType">Tipo de Identificación</label>
               <select id="idType" v-model="formData.tipoCedula" required>
-                <option value="Cedula">Cédula Nacional</option>
-                <option value="Pasaporte">Pasaporte</option>
-                <option value="Residencia">Residencia</option>
+                <option value="Juridica">Cédula Jurídica</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="idNumber">{{ t('register.idNumber') }}</label>
-              <input type="text" id="idNumber" v-model="formData.cedula" :placeholder="t('register.idNumberPlaceholder')" required />
+              <label for="idNumber">Número de Cédula Jurídica</label>
+              <input type="text" id="idNumber" v-model="formData.cedula" placeholder="Ej: 3-101-123456" required />
             </div>
           </div>
+
           <div class="form-row">
             <div class="form-group" style="flex: 0.5;">
-              <label for="countryCode">{{ t('register.countryCode') }}</label>
+              <label for="countryCode">Código de país</label>
               <select id="countryCode" v-model="formData.codigoPais" required>
                  <option value="+506">CR (+506)</option>
                  <option value="+1">US (+1)</option>
@@ -61,13 +62,13 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="phoneNumber">{{ t('register.phoneNumber') }}</label>
-              <input type="tel" id="phoneNumber" v-model="formData.numeroTelefono" :placeholder="t('register.phoneNumberPlaceholder')" required />
+              <label for="phoneNumber">Número de teléfono</label>
+              <input type="tel" id="phoneNumber" v-model="formData.numeroTelefono" placeholder="Ingrese número de teléfono" required />
             </div>
           </div>
           <div class="form-row">
              <div class="form-group">
-                <label for="province">{{ t('register.province') }}</label>
+                <label for="province">Provincia</label>
                 <select id="province" v-model="formData.direccion.provincia" required>
                     <option disabled value="">Provincia</option>
                     <option>San José</option>
@@ -80,42 +81,43 @@
                 </select>
              </div>
              <div class="form-group">
-                <label for="canton">{{ t('register.canton') }}</label>
+                <label for="canton">Cantón</label>
                 <input type="text" id="canton" v-model="formData.direccion.canton" placeholder="Cantón" required />
              </div>
              <div class="form-group">
-                <label for="district">{{ t('register.district') }}</label>
+                <label for="district">Distrito</label>
                 <input type="text" id="district" v-model="formData.direccion.distrito" placeholder="Distrito" required />
              </div>
           </div>
           <div class="form-group-full">
-            <label for="exactAddress">{{ t('register.exactAddress') }}</label>
-            <input type="text" id="exactAddress" v-model="formData.direccion.senas" :placeholder="t('register.exactAddressPlaceholder')" required />
+            <label for="exactAddress">Dirección Exacta</label>
+            <input type="text" id="exactAddress" v-model="formData.direccion.senas" placeholder="Ingrese la dirección exacta" required />
           </div>
-          <div class="form-group-full">
-            <label for="email">{{ t('register.email') }}</label>
-            <input type="email" id="email" v-model="formData.email" :placeholder="t('register.emailPlaceholder')" required />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="password">{{ t('register.password') }}</label>
-              <input type="password" id="password" v-model="formData.password" :placeholder="t('register.passwordPlaceholder')" required />
+          
+          <template v-if="!authStore.isLoggedIn">
+            <div class="form-group-full">
+              <label for="email">Correo electrónico de la cuenta</label>
+              <input type="email" id="email" v-model="formData.email" placeholder="Ingrese el correo de la cuenta" required />
             </div>
-            <div class="form-group">
-              <label for="passwordConfirm">{{ t('register.passwordConfirm') }}</label>
-              <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" :placeholder="t('register.passwordConfirmPlaceholder')" required />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" v-model="formData.password" placeholder="Ingrese su contraseña" required />
+              </div>
+              <div class="form-group">
+                <label for="passwordConfirm">Confirmar Contraseña</label>
+                <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" placeholder="Vuelva a ingresar la contraseña" required />
+              </div>
             </div>
-          </div>
-          <button type="submit" class="btn-submit">{{ t('register.registerButton') }}</button>
+          </template>
+          
+          <button type="submit" class="btn-submit">Registrar Ganadería</button>
         </form>
         <div class="sub-link">
-          <i18n-t keypath="register.loginPrompt" tag="span">
-            <template #loginLink>
-              <router-link to="/login">
-                <strong>{{ t('register.loginNow') }}</strong>
-              </router-link>
-            </template>
-          </i18n-t>
+          <span>¿Ya tienes una cuenta? </span>
+          <router-link to="/login">
+            <strong>Inicia sesión</strong>
+          </router-link>
         </div>
       </div>
     </div>
@@ -126,89 +128,78 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
-import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
 
-const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 
 const formData = reactive({
   nombreCompleto: '',
-  fechaNacimiento: '',
-  tipoCedula: 'Cedula',
+  fechaNacimiento: '', // Usado para Fecha de Fundación
+  tipoCedula: 'Juridica', // Por defecto Jurídica
   cedula: '',
   codigoPais: '+506',
   numeroTelefono: '',
-  direccion: {
-    provincia: '',
-    canton: '',
-    distrito: '',
-    senas: '',
-  },
+  direccion: { provincia: '', canton: '', distrito: '', senas: '' },
   email: '',
   password: '',
   passwordConfirmation: '',
-  profileImage: null,
+  profileImage: null, // Para el logo
 });
 
 const handleFileChange = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    formData.profileImage = file;
-  }
+  formData.profileImage = event.target.files[0] || null;
 };
 
 const handleRegister = async () => {
-  if (formData.password !== formData.passwordConfirmation) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: t('register.passwordMismatch'),
-      confirmButtonColor: '#6D4C41'
-    });
+  const user = authStore.currentUser;
+
+  if (!user && formData.password !== formData.passwordConfirmation) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Las contraseñas no coinciden.', confirmButtonColor: '#6D4C41' });
     return;
   }
   
   try {
-    const userData = {
-      nombreCompleto: formData.nombreCompleto,
-      fechaNacimiento: formData.fechaNacimiento,
-      tipoCedula: formData.tipoCedula,
-      cedula: formData.cedula,
+    const registrationPayload = {
+      tipoCuenta: 'Ganaderia',
+      // Mapeo de campos del formulario a lo que espera el backend
+      nombre: formData.nombreCompleto,
+      fechaFundacion: formData.fechaNacimiento,
+      cedulaJuridica: formData.cedula,
       telefono: `${formData.codigoPais}${formData.numeroTelefono}`,
-      email: formData.email,
-      password: formData.password,
       direccion: `${formData.direccion.provincia}, ${formData.direccion.canton}, ${formData.direccion.distrito}. ${formData.direccion.senas}`,
     };
-    await authStore.register(userData);
 
-    Swal.fire({
+    if (user) {
+      registrationPayload.email = user.email;
+    } else {
+      registrationPayload.email = formData.email;
+      registrationPayload.password = formData.password;
+    }
+    
+    await authStore.register(registrationPayload);
+
+    await Swal.fire({
       icon: 'success',
       title: '¡Registro Exitoso!',
-      text: 'Serás redirigido a la página de inicio de sesión.',
-      timer: 2500,
+      text: 'El perfil de tu ganadería ha sido creado.',
+      timer: 3000,
       timerProgressBar: true,
-      showConfirmButton: false
-    }).then(() => {
-      router.push('/login');
+      showConfirmButton: false,
     });
+    
+    router.push(user ? '/profile' : '/login');
 
   } catch (error) {
     console.error('Registration failed:', error);
-    const errorMessage = error.response?.data?.message || t('register.errorMessage');
-    Swal.fire({
-      icon: 'error',
-      title: 'Error de Registro',
-      text: errorMessage,
-      confirmButtonColor: '#6D4C41'
-    });
+    const errorMessage = error.response?.data?.message || 'Hubo un error al registrar el perfil.';
+    Swal.fire({ icon: 'error', title: 'Error de Registro', text: errorMessage, confirmButtonColor: '#6D4C41' });
   }
 };
 
 const carouselItems = computed(() => [
-  { text: t('register.carousel.slide1') },
-  { text: t('register.carousel.slide2') },
+  { text: 'Conectando criadores, fortaleciendo el campo.' },
+  { text: 'La plataforma líder para subastas de ganado.' },
 ]);
 const currentIndex = ref(0);
 let intervalId = null;
@@ -221,12 +212,18 @@ const goToSlide = (index) => {
   intervalId = setInterval(nextSlide, 5000);
 };
 
-onMounted(() => { intervalId = setInterval(nextSlide, 5000); });
+onMounted(() => {
+  if (authStore.currentUser) {
+    formData.email = authStore.currentUser.email;
+  }
+  intervalId = setInterval(nextSlide, 5000);
+});
+
 onUnmounted(() => { clearInterval(intervalId); });
 </script>
 
 <style scoped>
-/* Tus estilos no necesitan cambios */
+
 .register-page {
   position: fixed;
   top: 0;

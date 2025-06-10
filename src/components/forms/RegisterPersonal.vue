@@ -92,20 +92,25 @@
             <label for="exactAddress">{{ t('register.exactAddress') }}</label>
             <input type="text" id="exactAddress" v-model="formData.direccion.senas" :placeholder="t('register.exactAddressPlaceholder')" required />
           </div>
-          <div class="form-group-full">
-            <label for="email">{{ t('register.email') }}</label>
-            <input type="email" id="email" v-model="formData.email" :placeholder="t('register.emailPlaceholder')" required />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="password">{{ t('register.password') }}</label>
-              <input type="password" id="password" v-model="formData.password" :placeholder="t('register.passwordPlaceholder')" required />
+          
+          <!-- CAMPO CONDICIONAL: Solo para usuarios no logueados -->
+          <template v-if="!authStore.isLoggedIn">
+            <div class="form-group-full">
+              <label for="email">{{ t('register.email') }}</label>
+              <input type="email" id="email" v-model="formData.email" :placeholder="t('register.emailPlaceholder')" required />
             </div>
-            <div class="form-group">
-              <label for="passwordConfirm">{{ t('register.passwordConfirm') }}</label>
-              <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" :placeholder="t('register.passwordConfirmPlaceholder')" required />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="password">{{ t('register.password') }}</label>
+                <input type="password" id="password" v-model="formData.password" :placeholder="t('register.passwordPlaceholder')" required />
+              </div>
+              <div class="form-group">
+                <label for="passwordConfirm">{{ t('register.passwordConfirm') }}</label>
+                <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" :placeholder="t('register.passwordConfirmPlaceholder')" required />
+              </div>
             </div>
-          </div>
+          </template>
+
           <button type="submit" class="btn-submit">{{ t('register.registerButton') }}</button>
         </form>
         <div class="sub-link">
@@ -140,12 +145,7 @@ const formData = reactive({
   cedula: '',
   codigoPais: '+506',
   numeroTelefono: '',
-  direccion: {
-    provincia: '',
-    canton: '',
-    distrito: '',
-    senas: '',
-  },
+  direccion: { provincia: '', canton: '', distrito: '', senas: '' },
   email: '',
   password: '',
   passwordConfirmation: '',
@@ -153,77 +153,82 @@ const formData = reactive({
 });
 
 const handleFileChange = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    formData.profileImage = file;
-  }
+  formData.profileImage = event.target.files[0] || null;
 };
 
 const handleRegister = async () => {
-  if (formData.password !== formData.passwordConfirmation) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: t('register.passwordMismatch'),
-      confirmButtonColor: '#6D4C41'
-    });
+  const user = authStore.currentUser;
+
+  if (!user && formData.password !== formData.passwordConfirmation) {
+    Swal.fire({ icon: 'error', title: 'Error', text: t('register.passwordMismatch'), confirmButtonColor: '#6D4C41' });
     return;
   }
   
   try {
-    const userData = {
+    // Se construye el payload base con los datos del perfil
+    const registrationPayload = {
+      tipoCuenta: 'Personal',
       nombreCompleto: formData.nombreCompleto,
       fechaNacimiento: formData.fechaNacimiento,
       tipoCedula: formData.tipoCedula,
       cedula: formData.cedula,
       telefono: `${formData.codigoPais}${formData.numeroTelefono}`,
-      email: formData.email,
-      password: formData.password,
       direccion: `${formData.direccion.provincia}, ${formData.direccion.canton}, ${formData.direccion.distrito}. ${formData.direccion.senas}`,
     };
-    await authStore.register(userData);
 
-    Swal.fire({
+    if (user) {
+      // --- Si el usuario ESTÁ logueado ---
+      // Añadimos solo su email. NO enviamos la contraseña.
+      registrationPayload.email = user.email;
+    } else {
+      // --- Si el usuario NO está logueado ---
+      // Añadimos el email y la contraseña del formulario.
+      registrationPayload.email = formData.email;
+      registrationPayload.password = formData.password;
+    }
+    
+    await authStore.register(registrationPayload);
+
+    await Swal.fire({
       icon: 'success',
       title: '¡Registro Exitoso!',
-      text: 'Serás redirigido a la página de inicio de sesión.',
-      timer: 2500,
+      text: 'Tu perfil personal ha sido creado.',
+      timer: 3000,
       timerProgressBar: true,
-      showConfirmButton: false
-    }).then(() => {
-      router.push('/login');
+      showConfirmButton: false,
     });
+    
+    // Si ya estaba logueado, lo mandamos a su perfil para ver el cambio.
+    // Si era nuevo, al login para que inicie sesión.
+    router.push(user ? '/profile' : '/login');
 
   } catch (error) {
     console.error('Registration failed:', error);
     const errorMessage = error.response?.data?.message || t('register.errorMessage');
-    Swal.fire({
-      icon: 'error',
-      title: 'Error de Registro',
-      text: errorMessage,
-      confirmButtonColor: '#6D4C41'
-    });
+    Swal.fire({ icon: 'error', title: 'Error de Registro', text: errorMessage, confirmButtonColor: '#6D4C41' });
   }
 };
 
-const carouselItems = computed(() => [
-  { text: t('register.carousel.slide1') },
-  { text: t('register.carousel.slide2') },
-]);
+// ... (resto del script sin cambios) ...
+const carouselItems = computed(() => [ { text: t('register.carousel.slide1') }, { text: t('register.carousel.slide2') }, ]);
 const currentIndex = ref(0);
 let intervalId = null;
 const currentSlide = computed(() => carouselItems.value[currentIndex.value]);
-
 const nextSlide = () => { currentIndex.value = (currentIndex.value + 1) % carouselItems.value.length; };
 const goToSlide = (index) => {
   currentIndex.value = index;
   clearInterval(intervalId);
   intervalId = setInterval(nextSlide, 5000);
 };
-
-onMounted(() => { intervalId = setInterval(nextSlide, 5000); });
+onMounted(() => {
+  if (authStore.currentUser) {
+    formData.email = authStore.currentUser.email;
+  }
+  intervalId = setInterval(nextSlide, 5000);
+});
 onUnmounted(() => { clearInterval(intervalId); });
 </script>
+
 
 <style scoped>
 /* Tus estilos no necesitan cambios */

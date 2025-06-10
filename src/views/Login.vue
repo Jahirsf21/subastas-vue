@@ -50,7 +50,7 @@
         <div class="signup-link">
           <i18n-t keypath="login.noAccountPrompt" tag="span">
             <template #createAccountLink>
-              <router-link to="/choose-account">
+              <router-link to="/SelectTypeAccount">
                 <strong>{{ t('login.createAccountNow') }}</strong>
               </router-link>
             </template>

@@ -1,6 +1,5 @@
 <template>
   <div v-if="subastaData" class="subasta-details">
-    
     <div class="main-content">
       <div class="image-gallery">
         <img :src="mainImage" :alt="subastaData.titulo" class="main-image">
@@ -44,12 +43,12 @@
               type="number"
               v-model.number="nuevaPuja"
               :placeholder="`> ${formatCurrency(pujaMinima, false)}`"
-              :disabled="!authStore.isLoggedIn || subastaFinalizada"
+              :disabled="!isBidAllowed"
               class="bid-input"
               aria-label="Monto de la puja"
             />
           </div>
-          <button type="submit" class="bid-button" :disabled="!authStore.isLoggedIn || subastaFinalizada">
+          <button type="submit" class="bid-button" :disabled="!isBidAllowed">
             {{ getButtonText() }}
           </button>
           <p v-if="errorPuja" class="error-text">{{ errorPuja }}</p>
@@ -70,7 +69,6 @@
       </div>
       <div class="spec-item"><span class="label">Pujador Actual</span><span class="value">{{ subastaData.pujador || 'N/A' }}</span></div>
     </div>
-
   </div>
   
   <div v-else class="error-message">
@@ -83,30 +81,25 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useSubastasStore } from '../store/subastas';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
-  subastaId: {
-    type: [Number, String],
-    required: true
-  }
+  subastaId: { type: [Number, String], required: true }
 });
 
 const authStore = useAuthStore();
 const subastasStore = useSubastasStore();
 const router = useRouter();
 
-const subastaData = computed(() => {
-  return subastasStore.getSubastaById(props.subastaId);
-});
-
+const subastaData = computed(() => subastasStore.getSubastaById(props.subastaId));
 const mainImage = ref('');
-const setMainImage = (imgUrl) => {
-  mainImage.value = imgUrl;
-};
-
 const tiempoRestante = ref('');
 const subastaFinalizada = ref(false);
 let timerInterval = null;
+const nuevaPuja = ref(null);
+const errorPuja = ref('');
+
+const setMainImage = (imgUrl) => { mainImage.value = imgUrl; };
 
 const calcularTiempoRestante = () => {
   if (!subastaData.value?.fechaFinal) return;
@@ -117,43 +110,66 @@ const calcularTiempoRestante = () => {
     tiempoRestante.value = "Subasta Finalizada";
     subastaFinalizada.value = true;
     clearInterval(timerInterval);
-    return;
+  } else {
+    const d = Math.floor(diferencia / 86400000);
+    const h = Math.floor((diferencia % 86400000) / 3600000);
+    const m = Math.floor((diferencia % 3600000) / 60000);
+    const s = Math.floor((diferencia % 60000) / 1000);
+    tiempoRestante.value = `${d}d ${h}h ${m}m ${s}s`;
   }
-  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-  const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-  const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
-  tiempoRestante.value = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
 };
 
-const nuevaPuja = ref(null);
-const errorPuja = ref('');
-
-const pujaMinima = computed(() => {
-  if (!subastaData.value) return 0;
-  return subastaData.value.puja || subastaData.value.precioInicial;
-});
+const pujaMinima = computed(() => subastaData.value ? (subastaData.value.puja || subastaData.value.precioInicial) : 0);
+const activeProfile = computed(() => authStore.activeProfileData);
+const isBidAllowed = computed(() => authStore.isLoggedIn && !subastaFinalizada.value && activeProfile.value);
 
 const handlePuja = async () => {
-  if (subastaFinalizada.value) return;
-  if (!authStore.isLoggedIn) {
-    alert("Debes iniciar sesión para poder pujar.");
-    router.push('/login');
+  if (!isBidAllowed.value) {
+    const swalConfig = {
+      willOpen: () => {
+        const container = Swal.getContainer();
+        if (container) container.style.zIndex = '3000';
+      }
+    };
+    if (!authStore.isLoggedIn) {
+      Swal.fire({ ...swalConfig, icon: 'warning', title: '¡Atención!', text: 'Debes iniciar sesión para poder pujar.' });
+      router.push('/login');
+    } else if (!activeProfile.value) {
+      Swal.fire({ ...swalConfig, icon: 'info', title: 'Perfil Requerido', text: 'Debes tener un perfil (Personal o Ganadería) para poder pujar.' });
+    }
     return;
   }
+  
   if (!nuevaPuja.value || nuevaPuja.value <= pujaMinima.value) {
     errorPuja.value = `Tu puja debe ser mayor a ${formatCurrency(pujaMinima.value)}.`;
     return;
   }
+  
   errorPuja.value = '';
+
   try {
+    const pujadorNombre = activeProfile.value.nombre || activeProfile.value.nombreCompleto;
+    
     await subastasStore.placeBid({
       subastaId: subastaData.value.id,
       montoPuja: nuevaPuja.value,
-      pujador: authStore.currentUser.user.nombre,
+      pujador: pujadorNombre,
     });
-    alert("¡Tu puja ha sido registrada con éxito!");
+    
+    // ¡CAMBIO! Se añade la configuración de z-index a esta alerta.
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: 'Tu puja ha sido registrada correctamente.',
+      timer: 2000,
+      showConfirmButton: false,
+      willOpen: () => {
+        const container = Swal.getContainer();
+        if (container) container.style.zIndex = '3000';
+      }
+    });
     nuevaPuja.value = null;
+
   } catch (error) {
     errorPuja.value = error.message || 'Hubo un error al procesar tu puja.';
   }
@@ -162,6 +178,7 @@ const handlePuja = async () => {
 const getButtonText = () => {
   if (subastaFinalizada.value) return "Subasta Finalizada";
   if (!authStore.isLoggedIn) return "Iniciar Sesión para Pujar";
+  if (!activeProfile.value) return "Se requiere un perfil";
   return "Realizar Puja";
 };
 
@@ -188,9 +205,7 @@ onMounted(() => {
   }
 });
 
-onUnmounted(() => {
-  clearInterval(timerInterval);
-});
+onUnmounted(() => { clearInterval(timerInterval); });
 </script>
 
 <style scoped>

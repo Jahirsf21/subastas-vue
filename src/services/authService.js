@@ -1,14 +1,13 @@
-// src/services/authService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/auth/'; 
+const API_URL = 'http://localhost:3000/api/auth/';
 
 class AuthService {
-  login(user) {
+  login(userCredentials) {
     return axios
       .post(API_URL + 'login', {
-        email: user.email,
-        password: user.password
+        email: userCredentials.email,
+        password: userCredentials.password
       })
       .then(response => {
         if (response.data.token) {
@@ -22,17 +21,12 @@ class AuthService {
     localStorage.removeItem('user');
   }
 
-  register(userData) {
-    return axios.post(API_URL + 'register', {
-        nombreCompleto: userData.nombreCompleto,
-        tipoCedula: userData.tipoCedula,
-        cedula: userData.cedula,
-        telefono: userData.telefono,
-        fechaNacimiento: userData.fechaNacimiento,
-        email: userData.email,
-        direccion: userData.direccion, 
-        password: userData.password
-    });
+  register(registrationData) {
+    return axios.post(API_URL + 'register', registrationData);
+  }
+
+  deleteAccount(credentials) {
+    return axios.delete(API_URL + 'account', { data: credentials });
   }
 }
 
