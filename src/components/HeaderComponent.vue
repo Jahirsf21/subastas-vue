@@ -4,7 +4,7 @@
       <h1><img src="/logo.png" alt="Logo" class="logo" />{{ t('header.title') }}</h1>
     </router-link>
 
-    <form class="search-container" @submit.prevent="performSearch">
+    <form class="search-container">
       <input 
         type="text" 
         class="search-input" 
@@ -85,15 +85,8 @@ const openProfileModal = () => {
 
 const updateSearchQuery = (event) => {
   subastasStore.setSearchQuery(event.target.value);
-  if (router.currentRoute.value.path !== '/catalog') {
-    router.push('/catalog');
-  }
 };
-const performSearch = () => {
-  if (router.currentRoute.value.path !== '/catalog') {
-    router.push('/catalog');
-  }
-};
+
 
 
 const showLanguageMenu = ref(false);

@@ -2,7 +2,7 @@
 <template>
   <div class="auction-card">
     <div class="image-container">
-      <img :src="subasta.imagen" :alt="subasta.titulo" class="main-image">
+      <img :src="backendUrl + subasta.imagen" :alt="subasta.titulo" class="main-image">
       <button class="favorite-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
       </button>
@@ -16,7 +16,7 @@
       <div class="title-line">
         <h3>{{ subasta.titulo }}</h3>
         <div class="status-tag">
-          <img src="/icons/edad.png" alt="Estado"> 
+          <img src="/icons/edad.png" :alt="t('auctionCard.statusAlt')"> 
           <span>{{ subasta.estado }}</span>
         </div>
       </div>
@@ -24,10 +24,8 @@
       <p class="weight">{{ t('categories.weight') }}: {{ subasta.peso }}</p>
       <p class="price">{{ t('categories.price') }}: <strong>{{ formatCurrency(subasta.precioInicial) }}</strong></p>
     </div>
-    
-    <!-- El overlay ahora está aquí, fuera del info-container -->
     <div v-if="subasta.esPendiente" class="pending-overlay">
-      <span>PENDIENTE DE APROBACIÓN</span>
+      <span>{{ t('auctionCard.pending_approval') }}</span>
     </div>
   </div>
 </template>
@@ -36,7 +34,7 @@
 import { defineProps } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
-
+const backendUrl = 'http://localhost:3000';
 const props = defineProps({
   subasta: {
     type: Object,
@@ -49,7 +47,6 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CR', {
     style: 'currency',
     currency: 'CRC',
-    // Ajustado para que no muestre decimales, como en tu imagen
     minimumFractionDigits: 0,
     maximumFractionDigits: 0, 
   }).format(value);
@@ -66,7 +63,7 @@ const formatCurrency = (value) => {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  position: relative; /* ¡MUY IMPORTANTE! para que el overlay se posicione correctamente */
+  position: relative; 
 }
 
 .auction-card:hover {
@@ -105,7 +102,7 @@ const formatCurrency = (value) => {
   cursor: pointer;
   padding: 0;
   color: white;
-  z-index: 2; /* Asegura que esté sobre la imagen */
+  z-index: 2; 
 }
 .favorite-button:hover svg {
   fill: white;
@@ -193,16 +190,16 @@ p {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(253, 216, 53, 0.75); /* Amarillo como en la imagen */
+  background-color: rgba(253, 216, 53, 0.75); 
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3E2723; /* Un color oscuro para el texto */
+  color: #3E2723; 
   font-weight: bold;
   text-align: center;
   font-size: 1.2rem;
-  z-index: 5; /* Asegura que esté sobre todo lo demás */
-  border-radius: 16px; /* Para que coincida con la tarjeta */
-  backdrop-filter: blur(2px); /* Efecto de desenfoque opcional */
+  z-index: 5; 
+  border-radius: 16px;
+  backdrop-filter: blur(2px); 
 }
 </style>

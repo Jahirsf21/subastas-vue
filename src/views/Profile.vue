@@ -9,6 +9,7 @@
       </header>
 
       <main class="account-content">
+        <!-- VISTA CUANDO NO ESTÁ LOGUEADO -->
         <template v-if="!isLoggedIn">
           <div class="section">
             <button @click="goToLogin" class="list-item interactive" aria-label="Iniciar sesión">
@@ -34,7 +35,13 @@
           </div>
           <div class="section">
             <h2 class="section-title">{{ t('profile.general') }}</h2>
-            <button @click="goToRoute('/help')" class="list-item interactive">
+            <!-- CORRECCIÓN AQUÍ: Convertido a etiqueta <a> para enlace externo -->
+            <a 
+              href="https://api.whatsapp.com/send/?phone=%2B50662116383&text&type=phone_number&app_absent=0" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="list-item interactive"
+            >
               <div class="item-content">
                 <img src="/icons/help.svg" alt="" class="item-icon">
                 <span>{{ t('profile.help') }}</span>
@@ -42,7 +49,7 @@
               <div class="right-icon-container">
                   <img src="/icons/row.svg" alt="" class="arrow-icon">
               </div>
-            </button>
+            </a>
           </div>
         </template>
 
@@ -110,7 +117,13 @@
                   <img src="/icons/row.svg" alt="" class="arrow-icon">
               </div>
             </button>
-            <button @click="goToRoute('/help')" class="list-item interactive">
+            <!-- CORRECCIÓN AQUÍ TAMBIÉN: Convertido a etiqueta <a> -->
+            <a 
+              href="https://api.whatsapp.com/send/?phone=%2B50662116383&text&type=phone_number&app_absent=0" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="list-item interactive"
+            >
               <div class="item-content">
                 <img src="/icons/help.svg" alt="" class="item-icon">
                 <span>{{ t('profile.help') }}</span>
@@ -118,7 +131,7 @@
               <div class="right-icon-container">
                   <img src="/icons/row.svg" alt="" class="arrow-icon">
               </div>
-            </button>
+            </a>
             <button @click="handleLogout" class="list-item interactive">
               <div class="item-content">
                 <img src="/icons/logout.svg" alt="" class="item-icon">
@@ -159,7 +172,7 @@ import MyAuctionsStatus from '../components/MyAuctionsStatus.vue';
 
 const emit = defineEmits(['close']);
 
-const showMyAuctionsModal = ref(false); // ¡NUEVO! Estado para el modal
+const showMyAuctionsModal = ref(false); 
 
 const openMyAuctionsModal = () => {
   showMyAuctionsModal.value = true;
@@ -361,7 +374,7 @@ const openPaidMethodModal = () => {
   padding-top: 15px;
 }
 
-/* El primer section no necesita línea superior */
+
 .account-content > *:first-child .section, .account-content > *:first-child {
   border-top: none;
   padding-top: 0;
@@ -460,4 +473,25 @@ const openPaidMethodModal = () => {
 .list-item.danger .item-content {
   color: #c0392b;
 }
+
+a.list-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px;
+  width: 100%;
+  text-decoration: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #3E2723;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+a.list-item .item-content {
+  color: #3E2723;
+}
+
 </style>

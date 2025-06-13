@@ -2,12 +2,12 @@
   <div v-if="subastaData" class="subasta-details">
     <div class="main-content">
       <div class="image-gallery">
-        <img :src="mainImage" :alt="subastaData.titulo" class="main-image">
+        <img :src="backendUrl + mainImage" :alt="subastaData.titulo" class="main-image">
         <div v-if="subastaData.imagenes && subastaData.imagenes.length > 1" class="thumbnail-strip">
           <img
             v-for="(img, index) in subastaData.imagenes"
             :key="index"
-            :src="img"
+            :src="backendUrl + img"
             :alt="t('auctionDetails.imageAlt', { index: index + 1 })"
             :class="{ active: img === mainImage }"
             @click="setMainImage(img)"
@@ -72,10 +72,12 @@
         <span class="value">{{ subastaData.pujador || t('auctionDetails.specs.notAvailable') }}</span>
       </div>
     </div>
+    
+    <!-- Sección del Admin traducida -->
     <div v-if="authStore.isAdmin && subastaData.esPendiente" class="admin-actions">
-      <h3>Acciones de Administrador</h3>
-      <button @click="handleApprove" class="btn-approve">Aprobar Subasta</button>
-      <button @click="handleReject" class="btn-reject">Rechazar Subasta</button>
+      <h3>{{ t('auctionDetails.adminActionsTitle') }}</h3>
+      <button @click="handleApprove" class="btn-approve">{{ t('auctionDetails.approveButton') }}</button>
+      <button @click="handleReject" class="btn-reject">{{ t('auctionDetails.rejectButton') }}</button>
     </div>
   </div>
   
@@ -91,8 +93,8 @@ import { useSubastasStore } from '../store/subastas';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { useI18n } from 'vue-i18n';
-const emit = defineEmits(['close'])
 
+const emit = defineEmits(['close'])
 const { t } = useI18n(); 
 
 const props = defineProps({
@@ -103,6 +105,9 @@ const authStore = useAuthStore();
 const subastasStore = useSubastasStore();
 const router = useRouter();
 
+// Define la URL base de tu backend
+const backendUrl = 'http://localhost:3000';
+
 const subastaData = computed(() => subastasStore.getSubastaById(props.subastaId));
 const mainImage = ref('');
 const tiempoRestante = ref('');
@@ -111,7 +116,9 @@ let timerInterval = null;
 const nuevaPuja = ref(null);
 const errorPuja = ref('');
 
-const setMainImage = (imgUrl) => { mainImage.value = imgUrl; };
+const setMainImage = (imgUrl) => { 
+  mainImage.value = imgUrl; 
+};
 
 const calcularTiempoRestante = () => {
   if (!subastaData.value?.fechaFinal) return;
@@ -133,19 +140,16 @@ const calcularTiempoRestante = () => {
 
 const pujaMinima = computed(() => subastaData.value ? (subastaData.value.puja || subastaData.value.precioInicial) : 0);
 const activeProfile = computed(() => authStore.activeProfileData);
-const isBidAllowed = computed(() => authStore.isLoggedIn && !subastaFinalizada.value && activeProfile.value);
+const isBidAllowed = computed(() => authStore.isLoggedIn && !subastaFinalizada.value && !authStore.isAdmin && activeProfile.value);
 
 const handlePuja = async () => {
   if (!isBidAllowed.value) {
-    const swalConfig = {
-      willOpen: () => {
-        const container = Swal.getContainer();
-        if (container) container.style.zIndex = '3000';
-      }
-    };
+    const swalConfig = { willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; } };
     if (!authStore.isLoggedIn) {
       Swal.fire({ ...swalConfig, icon: 'warning', title: t('auctionDetails.bidErrorTitle'), text: t('auctionDetails.bidLoginRequired') });
       router.push('/login');
+    } else if (authStore.isAdmin) {
+      Swal.fire({ ...swalConfig, icon: 'info', title: t('auctionDetails.bidErrorTitle'), text: t('auctionDetails.adminCannotBid') });
     } else if (!activeProfile.value) {
       Swal.fire({ ...swalConfig, icon: 'info', title: t('auctionDetails.bidProfileRequiredTitle'), text: t('auctionDetails.bidProfileRequiredText') });
     }
@@ -157,11 +161,12 @@ const handlePuja = async () => {
     return;
   }
 
-  const pujaMaxima = subastaData.value.precioInicial
-    if (nuevaPuja.value > pujaMaxima) {
+  const pujaMaxima = pujaMinima.value * 2;
+  if (nuevaPuja.value > pujaMaxima && pujaMinima.value > 0) { 
     errorPuja.value = t('auctionDetails.bidMaxError', { amount: formatCurrency(pujaMaxima) });
     return;
   }
+
   errorPuja.value = '';
   try {
     const pujadorNombre = activeProfile.value.nombre || activeProfile.value.nombreCompleto;
@@ -172,15 +177,9 @@ const handlePuja = async () => {
     });
     
     Swal.fire({
-      icon: 'success',
-      title: t('auctionDetails.bidSuccessTitle'),
-      text: t('auctionDetails.bidSuccessText'),
-      timer: 2000,
-      showConfirmButton: false,
-      willOpen: () => {
-        const container = Swal.getContainer();
-        if (container) container.style.zIndex = '3000';
-      }
+      icon: 'success', title: t('auctionDetails.bidSuccessTitle'), text: t('auctionDetails.bidSuccessText'),
+      timer: 2000, showConfirmButton: false,
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; }
     });
     nuevaPuja.value = null;
 
@@ -192,6 +191,7 @@ const handlePuja = async () => {
 const getButtonText = () => {
   if (subastaFinalizada.value) return t('auctionDetails.btn.finished');
   if (!authStore.isLoggedIn) return t('auctionDetails.btn.loginToBid');
+  if (authStore.isAdmin) return t('auctionDetails.btn.placeBid'); 
   if (!activeProfile.value) return t('auctionDetails.btn.profileRequired');
   return t('auctionDetails.btn.placeBid');
 };
@@ -206,21 +206,19 @@ const formatCurrency = (value, useSymbol = true) => {
   }).format(value);
 };
 
-
 const handleApprove = async () => {
   await subastasStore.approveAuction(props.subastaId);
-  emit('close'); // Emite el evento para cerrar el modal
+  emit('close');
 };
 
 const handleReject = async () => {
   await subastasStore.rejectAuction(props.subastaId);
-  emit('close'); // Emite el evento para cerrar el modal
+  emit('close');
 };
-
 
 watch(subastaData, (newData) => {
   if (newData) {
-    mainImage.value = newData.imagenes?.[0] || '/img/placeholder.jpg';
+    mainImage.value = newData.imagen || newData.imagenes?.[0] || '/img/placeholder.jpg';
   }
 }, { immediate: true });
 
@@ -270,28 +268,9 @@ onUnmounted(() => { clearInterval(timerInterval); });
 .spec-item .value { font-size: 1rem; font-weight: 600; }
 .error-message { text-align: center; padding: 40px; }
 
-
-.admin-actions {
-  margin-top: 30px;
-  padding: 20px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #fff9c4;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
+.admin-actions { margin-top: 30px; padding: 20px; border-top: 1px solid #e0e0e0; background-color: #fff9c4; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .admin-actions h3 { margin: 0 0 10px; color: #5D4037; }
-.admin-actions button {
-  width: 200px;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
+.admin-actions button { width: 200px; padding: 10px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
 .btn-approve { background-color: #4CAF50; }
 .btn-reject { background-color: #f44336; }
 </style>

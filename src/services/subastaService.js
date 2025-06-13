@@ -10,12 +10,11 @@ class SubastaService {
    * @returns {Promise<AxiosResponse<any>>}
    */
   getAll() {
-    // Hace una petición GET a http://localhost:3000/api/subastas
     return axios.get(API_URL + 'subastas');
   }
 
   /**
-   * (Opcional, pero recomendado) Obtiene una sola subasta por su ID.
+   * Obtiene una sola subasta por su ID (activa o pendiente).
    * @param {number} id - El ID de la subasta a obtener.
    * @returns {Promise<AxiosResponse<any>>}
    */
@@ -30,30 +29,48 @@ class SubastaService {
    * @returns {Promise<AxiosResponse<any>>}
    */
   placeBid(subastaId, bidData) {
-    // bidData = { montoPuja: number, pujador: string }
     return axios.post(API_URL + `subastas/${subastaId}/pujar`, bidData);
   }
 
   /**
-   * Crea una nueva subasta. La enviará al endpoint que la guardará como pendiente.
-   * @param {object} auctionData - Los datos de la subasta del formulario.
+   * Crea una nueva subasta, incluyendo la subida de archivos.
+   * @param {FormData} auctionFormData - Los datos de la subasta empaquetados como FormData.
    * @returns {Promise<AxiosResponse<any>>}
    */
-  create(auctionData) {
-    // Nota: Si estuvieras subiendo archivos de imagen, aquí usarías 'FormData'.
-    // Por ahora, como se maneja en el ejemplo, enviamos un objeto JSON.
-    return axios.post(API_URL + 'subastas', auctionData);
+  create(auctionFormData) {
+    // Cuando se envía un objeto FormData, axios establece automáticamente
+    // el 'Content-Type' a 'multipart/form-data'.
+    // No es necesario añadirlo manualmente, pero es bueno saberlo.
+    return axios.post(API_URL + 'subastas', auctionFormData);
   }
 
+  // --- MÉTODOS DE ADMINISTRADOR ---
+
+  /**
+   * Obtiene todas las subastas pendientes de aprobación.
+   * @returns {Promise<AxiosResponse<any>>}
+   */
   getPending() {
     return axios.get(API_URL + 'admin/subastas-pendientes');
   }
 
+  /**
+   * Aprueba o rechaza una subasta pendiente.
+   * @param {number} subastaId - El ID de la subasta a gestionar.
+   * @param {string} action - La acción a realizar ('aprobar' o 'rechazar').
+   * @returns {Promise<AxiosResponse<any>>}
+   */
   manageAuction(subastaId, action) {
     return axios.post(API_URL + `admin/subastas/${subastaId}/manage`, { action });
   }
 
-
+  // --- MÉTODOS DE USUARIO ---
+  
+  /**
+   * Obtiene todas las subastas (activas y pendientes) de un vendedor específico.
+   * @param {string} sellerName - El nombre del vendedor.
+   * @returns {Promise<AxiosResponse<any>>}
+   */
   getAuctionsBySeller(sellerName) {
     return axios.get(`${API_URL}user/subastas`, { params: { nombreVendedor: sellerName } });
   }

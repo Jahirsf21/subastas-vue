@@ -4,14 +4,14 @@
       <img src="/masvacas.jpg" alt="Ganado en el campo" :class="{ active: currentIndex === 0 }">
       <img src="/masmasvacas.jpg" alt="Toros en exhibición" :class="{ active: currentIndex === 1 }">
       <div class="image-text-container">
-        <h2>{{ currentSlide.text }}</h2>
+        <h2>{{ t(currentSlide.text) }}</h2>
         <div class="carousel-dots">
           <span v-for="(item, index) in carouselItems" :key="index" class="dot" :class="{ active: index === currentIndex }" @click="goToSlide(index)"></span>
         </div>
       </div>
     </div>
     <div class="form-panel">
-      <button @click="goToHome" class="home-button" aria-label="Volver a la página de inicio">
+      <button @click="goToHome" class="home-button" :aria-label="t('register.homeButtonAriaLabel')">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
           <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -46,9 +46,9 @@
             <div class="form-group">
               <label for="idType">{{ t('register.idType') }}</label>
               <select id="idType" v-model="formData.tipoCedula" required>
-                <option value="Cedula">Cédula Nacional</option>
-                <option value="Pasaporte">Pasaporte</option>
-                <option value="Residencia">Residencia</option>
+                <option value="Cedula">{{ t('register.idOptions.national') }}</option>
+                <option value="Pasaporte">{{ t('register.idOptions.passport') }}</option>
+                <option value="Residencia">{{ t('register.idOptions.residency') }}</option>
               </select>
             </div>
             <div class="form-group">
@@ -74,7 +74,7 @@
              <div class="form-group">
                 <label for="province">{{ t('register.province') }}</label>
                 <select id="province" v-model="formData.direccion.provincia" required>
-                    <option disabled value="">Provincia</option>
+                    <option disabled value="">{{ t('register.provincePlaceholder') }}</option>
                     <option>San José</option>
                     <option>Alajuela</option>
                     <option>Cartago</option>
@@ -86,11 +86,11 @@
              </div>
              <div class="form-group">
                 <label for="canton">{{ t('register.canton') }}</label>
-                <input type="text" id="canton" v-model="formData.direccion.canton" placeholder="Cantón" required />
+                <input type="text" id="canton" v-model="formData.direccion.canton" :placeholder="t('register.cantonPlaceholder')" required />
              </div>
              <div class="form-group">
                 <label for="district">{{ t('register.district') }}</label>
-                <input type="text" id="district" v-model="formData.direccion.distrito" placeholder="Distrito" required />
+                <input type="text" id="district" v-model="formData.direccion.distrito" :placeholder="t('register.districtPlaceholder')" required />
              </div>
           </div>
           <div class="form-group-full">
@@ -196,8 +196,8 @@ const handleRegister = async () => {
 
     await Swal.fire({
       icon: 'success',
-      title: '¡Registro Exitoso!',
-      text: 'Tu perfil personal ha sido creado.',
+      title: t('register.swal_success_title'),
+      text: t('register.swal_success_text'),
       timer: 3000,
       timerProgressBar: true,
       showConfirmButton: false,

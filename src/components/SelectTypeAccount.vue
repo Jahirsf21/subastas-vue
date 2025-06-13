@@ -1,28 +1,22 @@
 <template>
   <div class="selection-page">
     <div class="header-section">
-      <!-- BOTÓN DE REGRESO A HOME -->
-      <button @click="goToHome" class="home-button" aria-label="Volver a la página de inicio">
+      <button @click="goToHome" class="home-button" :aria-label="t('accountTypeSelection.homeButtonAriaLabel')">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
           <polyline points="9 22 9 12 15 12 15 22"></polyline>
         </svg>
       </button>
     </div>
-
-    <h2 class="title">Elija el tipo de cuenta:</h2>
-
+    <h2 class="title">{{ t('accountTypeSelection.title') }}</h2>
     <div class="choices-container">
-      <!-- Opción de Cuenta Personal -->
       <div class="choice-card" @click="goToRegister('Personal')">
-        <img src="/icons/personal.svg" alt="Cuenta Personal" class="choice-icon">
-        <p class="choice-label">Personal</p>
+        <img src="/icons/personal.svg" :alt="t('accountTypeSelection.personalAccountAlt')" class="choice-icon">
+        <p class="choice-label">{{ t('accountTypeSelection.personalAccount') }}</p>
       </div>
-
-      <!-- Opción de Cuenta Ganadería -->
       <div class="choice-card" @click="goToRegister('Ganaderia')">
-        <img src="/icons/ganaderia.svg" alt="Cuenta Ganadería" class="choice-icon">
-        <p class="choice-label">Ganadería</p>
+        <img src="/icons/ganaderia.svg" :alt="t('accountTypeSelection.ranchAccountAlt')" class="choice-icon">
+        <p class="choice-label">{{ t('accountTypeSelection.ranchAccount') }}</p>
       </div>
     </div>
   </div>
@@ -30,6 +24,9 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const {t} = useI18n()
 
 const router = useRouter();
 

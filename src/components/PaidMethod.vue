@@ -2,19 +2,18 @@
   <div class="account-page-background" @click.self="$emit('close')">
     <div class="account-container">
       <header class="account-header">
-        <button @click="$emit('close')" class="back-button" aria-label="Cerrar">
+        <button @click="$emit('close')" class="back-button" :aria-label="t('paymentMethods.close_aria_label')">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="15" y1="9" x2="9" y2="15"></line>
             <line x1="9" y1="9" x2="15" y2="15"></line>
           </svg>
         </button>
-        <h1 class="account-title">Métodos de Pago</h1>
+        <h1 class="account-title">{{ t('paymentMethods.title') }}</h1>
       </header>
-
       <main class="account-content">
         <div class="section">
-          <h2 class="section-title">Tarjetas Guardadas</h2>
+          <h2 class="section-title">{{ t('paymentMethods.savedCardsTitle') }}</h2>
           <div v-if="savedCards.length > 0">
             <div v-for="(card, index) in savedCards" :key="index" class="list-item">
               <div class="item-content">
@@ -22,31 +21,31 @@
                 <span>**** **** **** {{ card.number.slice(-4) }}</span>
                 <span class="card-expiry">{{ card.expiry }}</span>
               </div>
-              <button @click="removeCard(index)" class="delete-card-btn" aria-label="Eliminar tarjeta">
+              <button @click="removeCard(index)" class="delete-card-btn" :aria-label="t('paymentMethods.removeCardAriaLabel')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
               </button>
             </div>
           </div>
-          <p v-else class="no-cards-message">No tienes tarjetas guardadas.</p>
+          <p v-else class="no-cards-message">{{ t('paymentMethods.noCardsMessage') }}</p>
         </div>
         <div class="section">
-          <h2 class="section-title">Agregar Nueva Tarjeta</h2>
+          <h2 class="section-title">{{ t('paymentMethods.addCardTitle') }}</h2>
           <form @submit.prevent="addCard" class="card-form">
             <div class="form-group">
-              <label for="card-number">Número de Tarjeta</label>
-              <input id="card-number" type="text" v-model="newCard.number" placeholder="0000 0000 0000 0000" required>
+              <label for="card-number">{{ t('paymentMethods.cardNumberLabel') }}</label>
+              <input id="card-number" type="text" v-model="newCard.number" :placeholder="t('paymentMethods.cardNumberPlaceholder')" required>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="card-expiry">Expiración (MM/AA)</label>
-                <input id="card-expiry" type="text" v-model="newCard.expiry" placeholder="MM/AA" required>
+                <label for="card-expiry">{{ t('paymentMethods.expiryLabel') }}</label>
+                <input id="card-expiry" type="text" v-model="newCard.expiry" :placeholder="t('paymentMethods.expiryPlaceholder')" required>
               </div>
               <div class="form-group">
-                <label for="card-cvc">CVC</label>
-                <input id="card-cvc" type="text" v-model="newCard.cvc" placeholder="123" required>
+                <label for="card-cvc">{{ t('paymentMethods.cvcLabel') }}</label>
+                <input id="card-cvc" type="text" v-model="newCard.cvc" :placeholder="t('paymentMethods.cvcPlaceholder')" required>
               </div>
             </div>
-            <button type="submit" class="btn-primary">Agregar Tarjeta</button>
+            <button type="submit" class="btn-primary">{{ t('paymentMethods.addButton') }}</button>
           </form>
         </div>
       </main>
@@ -57,6 +56,8 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import Swal from 'sweetalert2';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 defineEmits(['close']);
 

@@ -7,18 +7,17 @@
           <img src="/icons/regresar.svg" alt="Cerrar">
         </button>
       </header>
-
       <main class="status-content">
-        <div v-if="subastasStore.isMyAuctionsLoading" class="loader">Cargando...</div>
+        <div v-if="subastasStore.isMyAuctionsLoading" class="loader">{{ t('catalog.loading') }}</div>
         <ul v-else-if="subastasStore.myAuctions.length > 0" class="auction-list">
           <li v-for="subasta in subastasStore.myAuctions" :key="subasta.id" class="auction-item">
-            <img :src="subasta.imagen || '/img/placeholder.jpg'" alt="" class="item-image">
+            <img :src="backendUrl + (subasta.imagen || '/img/placeholder.jpg')" alt="" class="item-image">
             <div class="item-info">
               <span class="item-title">{{ subasta.titulo }}</span>
               <span class="item-price">{{ formatCurrency(subasta.precioInicial) }}</span>
             </div>
             <span :class="['status-badge', getStatusClass(subasta.estado)]">
-              {{ t(`auctionStatus.${subasta.estado}`) }}
+              {{ t(`auctionStatus.${subasta.estado?.toLowerCase() || 'desconocido'}`) }}
             </span>
           </li>
         </ul>
@@ -40,25 +39,35 @@ const emit = defineEmits(['close']);
 const { t } = useI18n();
 const subastasStore = useSubastasStore();
 const authStore = useAuthStore();
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 onMounted(() => {
   const sellerName = authStore.activeProfileData?.nombre || authStore.activeProfileData?.nombreCompleto;
-  subastasStore.fetchMyAuctions(sellerName);
+  if (sellerName) {
+    subastasStore.fetchMyAuctions(sellerName);
+  }
 });
 
 const getStatusClass = (status) => {
+  if (!status) return '';
   switch (status.toLowerCase()) {
     case 'activa': return 'status-active';
     case 'pendiente': return 'status-pending';
     case 'finalizada': return 'status-finished';
-    case 'cancelada': return 'status-cancelled';
-    default: return '';
+    case 'rechazada': return 'status-rejected'; 
+    case 'cancelada': return 'status-cancelled'; 
+    default: return 'status-unknown';
   }
 };
 
 const formatCurrency = (value) => {
   if (typeof value !== 'number') return 'N/A';
-  return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat('es-CR', { 
+    style: 'currency', 
+    currency: 'CRC', 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 0 
+  }).format(value);
 };
 </script>
 
@@ -85,6 +94,7 @@ const formatCurrency = (value) => {
   display: flex;
   flex-direction: column;
   max-height: 80vh;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 .status-header {
   display: flex;
@@ -93,14 +103,13 @@ const formatCurrency = (value) => {
   padding: 1rem;
   border-bottom: 1px solid #D7CCC8;
   position: relative;
+  flex-shrink: 0;
 }
 .status-header h1 { 
   font-size: 1.5rem; 
   color: #3E2723; 
   margin: 0; 
 }
-
-
 .back-button { 
   position: absolute; 
   right: 1rem;
@@ -111,19 +120,14 @@ const formatCurrency = (value) => {
   display: flex;                
   align-items: center;
   justify-content: center;
+}
+.back-button:focus, .back-button:focus-visible {
   outline: none;
 }
-
-.back-button:focus {
-  outline: none;
-}
-
 .back-button img {
   width: 28px; 
   height: 28px;
 }
-
-
 .status-content { 
   padding: 1rem; 
   overflow-y: auto; 
@@ -140,11 +144,15 @@ const formatCurrency = (value) => {
   padding: 0.8rem;
   border-bottom: 1px solid #EAE3E0;
 }
+.auction-item:last-child {
+  border-bottom: none;
+}
 .item-image { 
   width: 50px; 
   height: 50px; 
   border-radius: 8px; 
   object-fit: cover; 
+  background-color: #e0e0e0;
 }
 .item-info { 
   flex-grow: 1; 
@@ -153,6 +161,7 @@ const formatCurrency = (value) => {
 }
 .item-title { 
   font-weight: 600; 
+  color: #3E2723;
 }
 .item-price { 
   font-size: 0.9rem; 
@@ -164,11 +173,15 @@ const formatCurrency = (value) => {
   font-size: 0.8rem;
   font-weight: bold;
   color: white;
+  text-transform: capitalize;
+  white-space: nowrap;
 }
 .status-active { background-color: #4CAF50; }
 .status-pending { background-color: #FFC107; color: #333; }
 .status-finished { background-color: #757575; }
+.status-rejected { background-color: #c0392b; }
 .status-cancelled { background-color: #f44336; }
+.status-unknown { background-color: #9E9E9E; }
 .no-auctions { 
   text-align: center; 
   padding: 2rem; 

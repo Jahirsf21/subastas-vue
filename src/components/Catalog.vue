@@ -1,11 +1,8 @@
 <template>
   <div class="catalog-page">
-    <!-- El botón ahora cambia el estado para mostrar el modal -->
     <button @click="openCreateAuctionModal" class="create-auction-btn">
       {{ t('catalog.createAuction') }}
     </button>
-    
-    <!-- Contenido existente de la página -->
     <div v-if="subastasStore.isLoading" class="status-message">
       <div class="spinner"></div>
       <p>{{ t('catalog.loading') }}</p>
@@ -32,12 +29,9 @@
   <div v-if="selectedSubastaId" class="modal-overlay" @click.self="closeSubastaDetails">
     <div class="modal-content">
       <button @click="closeSubastaDetails" class="close-button" :aria-label="t('catalog.close')">×</button>
-      <!-- Escuchamos el evento 'close' y llamamos a la función para cerrar -->
       <SubastaDetails :subastaId="selectedSubastaId" @close="closeSubastaDetails" />
     </div>
   </div>
-
-  <!-- ¡NUEVO! Modal para Crear Subasta -->
   <CreateAuction v-if="isCreateModalVisible" @close="closeCreateAuctionModal" />
 
 </template>
@@ -45,7 +39,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { computed } from 'vue';
-import { useAuthStore } from '../store/auth'; // Importa el store de auth
+import { useAuthStore } from '../store/auth'; 
 import { useSubastasStore } from '../store/subastas';
 import AuctionCard from '../components/AuctionCard.vue';
 import SubastaDetails from '../components/SubastaDetails.vue'; 
@@ -58,15 +52,12 @@ const subastasStore = useSubastasStore();
 const selectedSubastaId = ref(null);
 const { t } = useI18n();
 
-// 2. CREAR ESTADO para el nuevo modal
 const isCreateModalVisible = ref(false);
 
 const auctionsToShow = computed(() => {
-  // Si es admin, usa el getter que combina activas y pendientes
   if (authStore.isAdmin) {
     return subastasStore.allSubastasForAdmin;
   }
-  // Si no, usa el getter normal que solo muestra activas
   return subastasStore.processedSubastas;
 });
 
@@ -87,7 +78,6 @@ const closeSubastaDetails = () => {
   selectedSubastaId.value = null;
 };
 
-// 3. AÑADIR FUNCIONES para abrir y cerrar el modal de creación
 const openCreateAuctionModal = () => {
   isCreateModalVisible.value = true;
 };
@@ -99,7 +89,7 @@ const closeCreateAuctionModal = () => {
 </script>
 
 <style scoped>
-/* Los estilos se mantienen exactamente iguales, no necesitan cambios. */
+
 .catalog-page {
   padding: 24px;
   background-color: #f9f9f9; 

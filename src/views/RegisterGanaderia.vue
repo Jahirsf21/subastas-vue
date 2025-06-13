@@ -167,12 +167,15 @@ const handleFileChange = (event) => {
 
 const handleRegister = async () => {
   const user = authStore.currentUser;
-
   if (!user && formData.password !== formData.passwordConfirmation) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Las contraseñas no coinciden.', confirmButtonColor: '#6D4C41' });
+    Swal.fire({ 
+      icon: 'error', 
+      title: t('registerRanch.swal_error_title'), 
+      text: t('registerRanch.swal_password_mismatch'), 
+      confirmButtonColor: '#6D4C41' 
+    });
     return;
   }
-  
   try {
     const registrationPayload = {
       tipoCuenta: 'Ganaderia',
@@ -194,8 +197,8 @@ const handleRegister = async () => {
 
     await Swal.fire({
       icon: 'success',
-      title: '¡Registro Exitoso!',
-      text: 'El perfil de tu ganadería ha sido creado.',
+      title: t('registerRanch.swal_success_title'),
+      text: t('registerRanch.swal_success_text'),
       timer: 3000,
       timerProgressBar: true,
       showConfirmButton: false,
@@ -205,8 +208,13 @@ const handleRegister = async () => {
 
   } catch (error) {
     console.error('Registration failed:', error);
-    const errorMessage = error.response?.data?.message || 'Hubo un error al registrar el perfil.';
-    Swal.fire({ icon: 'error', title: 'Error de Registro', text: errorMessage, confirmButtonColor: '#6D4C41' });
+    const errorMessage = error.response?.data?.message || t('registerRanch.swal_generic_error_text');
+    Swal.fire({ 
+      icon: 'error', 
+      title: t('registerRanch.swal_generic_error_title'), 
+      text: errorMessage, 
+      confirmButtonColor: '#6D4C41' 
+    });
   }
 };
 
