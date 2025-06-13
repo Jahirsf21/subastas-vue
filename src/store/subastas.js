@@ -5,6 +5,9 @@ export const useSubastasStore = defineStore("subastas", {
   // 1. STATE: Datos centrales, incluyendo el buscador y sub-filtro de género
   state: () => ({
     subastas: [],
+    myAuctions: [],
+    isMyAuctionsLoading: false,
+    pendingSubastas: [],
     isLoading: false,
     error: null,
     activeFilter: 'peso',
@@ -17,9 +20,30 @@ export const useSubastasStore = defineStore("subastas", {
 
   // 2. GETTERS: Funciones para obtener datos derivados del state
   getters: {
-    getSubastaById: (state) => (subastaId) => {
-      return state.subastas.find((subasta) => subasta.id === Number(subastaId));
+
+
+    allSubastasForAdmin: (state) => {
+      // Marcamos las pendientes para poder distinguirlas en el UI
+      const pendingMarked = state.pendingSubastas.map(s => ({...s, esPendiente: true }));
+      return [...pendingMarked, ...state.subastas];
     },
+
+
+    getSubastaById: (state) => (subastaId) => {
+          const id = Number(subastaId);
+          // Primero busca en las subastas activas
+          let subasta = state.subastas.find((s) => s.id === id);
+          if (subasta) {
+            return subasta;
+          }
+          // Si no la encuentra, busca en las pendientes (importante para el admin)
+          subasta = state.pendingSubastas.find((s) => s.id === id);
+          if (subasta) {
+            // Le añadimos la marca 'esPendiente' para que el componente de detalles lo sepa
+            return { ...subasta, esPendiente: true };
+          }
+          return null; // Si no se encuentra en ninguna parte
+        },
 
     /**
      * Devuelve la lista de subastas procesada, aplicando todos los filtros en cascada.
@@ -29,12 +53,9 @@ export const useSubastasStore = defineStore("subastas", {
 
       let processedList = [...state.subastas];
 
-      // --- PASO 1: Filtrar por BÚSQUEDA GLOBAL ---
       if (state.searchQuery.trim() !== '') {
         const query = state.searchQuery.toLowerCase();
         processedList = processedList.filter(subasta => {
-          // Lista de campos en los que se buscará. Se unen en un solo string.
-          // El operador '??' asegura que no haya errores si un campo es null o undefined.
           const searchableContent = [
             subasta.titulo,
             subasta.descripcion,
@@ -92,18 +113,50 @@ export const useSubastasStore = defineStore("subastas", {
 
   // 3. ACTIONS: Métodos para modificar el state
   actions: {
-    async fetchSubastas() {
-      this.isLoading = true;
-      this.error = null;
+    async fetchSubastas(isAdmin = false) {
+          this.isLoading = true;
+          this.error = null;
+          try {
+            // Obtenemos las subastas activas
+            const response = await SubastaService.getAll();
+            this.subastas = response.data;
+
+            // Si es admin, también obtenemos las pendientes
+            if (isAdmin) {
+              const pendingResponse = await SubastaService.getPending();
+              this.pendingSubastas = pendingResponse.data;
+            }
+
+          } catch (err) {
+            // ... (manejo de error existente)
+          } finally {
+            this.isLoading = false;
+          }
+        },
+
+
+    async approveAuction(subastaId) {
+      await SubastaService.manageAuction(subastaId, 'aprobar');
+      // Refrescamos los datos para ver los cambios
+      await this.fetchSubastas(true); 
+    },
+    
+    async fetchMyAuctions(sellerName) {
+      if (!sellerName) return;
+      this.isMyAuctionsLoading = true;
       try {
-        const response = await SubastaService.getAll();
-        this.subastas = response.data;
-      } catch (err) {
-        console.error("Error al cargar las subastas:", err);
-        this.error = "No se pudieron cargar las subastas. Intente de nuevo más tarde.";
+        const response = await SubastaService.getAuctionsBySeller(sellerName);
+        this.myAuctions = response.data;
+      } catch (error) {
+        console.error("Error al cargar mis subastas:", error);
       } finally {
-        this.isLoading = false;
+        this.isMyAuctionsLoading = false;
       }
+    },
+
+    async rejectAuction(subastaId) {
+      await SubastaService.manageAuction(subastaId, 'rechazar');
+      await this.fetchSubastas(true);
     },
     
     setActiveFilter(filterName) {
@@ -134,6 +187,16 @@ export const useSubastasStore = defineStore("subastas", {
         return Promise.resolve(response.data);
       } catch (error) {
         console.error("Error al realizar la puja:", error.response?.data || error.message);
+        return Promise.reject(error.response?.data || { message: 'Error desconocido' });
+      }
+    },
+    async addAuction(auctionData) {
+      try {
+
+        const response = await SubastaService.create(auctionData);
+        return Promise.resolve(response.data);
+      } catch (error) {
+        console.error("Error al crear la subasta:", error.response?.data || error.message);
         return Promise.reject(error.response?.data || { message: 'Error desconocido' });
       }
     },

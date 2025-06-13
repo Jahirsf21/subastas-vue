@@ -8,7 +8,7 @@
             v-for="(img, index) in subastaData.imagenes"
             :key="index"
             :src="img"
-            :alt="`Vista ${index + 1}`"
+            :alt="t('auctionDetails.imageAlt', { index: index + 1 })"
             :class="{ active: img === mainImage }"
             @click="setMainImage(img)"
             class="thumbnail"
@@ -21,17 +21,17 @@
         <p class="description">{{ subastaData.descripcion }}</p>
         
         <div class="countdown-timer">
-          <h4>Tiempo restante</h4>
+          <h4>{{ t('auctionDetails.remainingTime') }}</h4>
           <div class="time-display">{{ tiempoRestante }}</div>
         </div>
         
         <div class="price-info">
           <div class="price-item">
-            <span class="label">Precio Base</span>
+            <span class="label">{{ t('auctionDetails.basePrice') }}</span>
             <span class="value">{{ formatCurrency(subastaData.precioInicial) }}</span>
           </div>
           <div class="price-item current-bid">
-            <span class="label">Puja Actual</span>
+            <span class="label">{{ t('auctionDetails.currentBid') }}</span>
             <span class="value">{{ formatCurrency(pujaMinima) }}</span>
           </div>
         </div>
@@ -45,7 +45,7 @@
               :placeholder="`> ${formatCurrency(pujaMinima, false)}`"
               :disabled="!isBidAllowed"
               class="bid-input"
-              aria-label="Monto de la puja"
+              :aria-label="t('auctionDetails.bidInputAria')"
             />
           </div>
           <button type="submit" class="bid-button" :disabled="!isBidAllowed">
@@ -57,22 +57,30 @@
     </div>
     
     <div class="specs-grid">
-      <div class="spec-item"><span class="label">Categoría</span><span class="value">{{ subastaData.categoria }}</span></div>
-      <div class="spec-item"><span class="label">Género</span><span class="value">{{ subastaData.genero }}</span></div>
-      <div class="spec-item"><span class="label">Raza</span><span class="value">{{ subastaData.raza }}</span></div>
-      <div class="spec-item"><span class="label">Edad</span><span class="value">{{ subastaData.edad }}</span></div>
-      <div class="spec-item"><span class="label">Peso</span><span class="value">{{ subastaData.peso }}</span></div>
-      <div class="spec-item"><span class="label">Genética</span><span class="value">{{ subastaData.genetica }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.category') }}</span><span class="value">{{ subastaData.categoria }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.gender') }}</span><span class="value">{{ subastaData.genero }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.breed') }}</span><span class="value">{{ subastaData.raza }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.age') }}</span><span class="value">{{ subastaData.edad }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.weight') }}</span><span class="value">{{ subastaData.peso }}</span></div>
+      <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.genetics') }}</span><span class="value">{{ subastaData.genetica }}</span></div>
       <div class="spec-item">
-        <span class="label">Vendedor</span>
-        <span class="value">{{ subastaData.vendedor?.nombre || 'N/A' }}</span>
+        <span class="label">{{ t('auctionDetails.specs.seller') }}</span>
+        <span class="value">{{ subastaData.vendedor?.nombre || t('auctionDetails.specs.notAvailable') }}</span>
       </div>
-      <div class="spec-item"><span class="label">Pujador Actual</span><span class="value">{{ subastaData.pujador || 'N/A' }}</span></div>
+      <div class="spec-item">
+        <span class="label">{{ t('auctionDetails.specs.currentBidder') }}</span>
+        <span class="value">{{ subastaData.pujador || t('auctionDetails.specs.notAvailable') }}</span>
+      </div>
+    </div>
+    <div v-if="authStore.isAdmin && subastaData.esPendiente" class="admin-actions">
+      <h3>Acciones de Administrador</h3>
+      <button @click="handleApprove" class="btn-approve">Aprobar Subasta</button>
+      <button @click="handleReject" class="btn-reject">Rechazar Subasta</button>
     </div>
   </div>
   
   <div v-else class="error-message">
-    <h2>Cargando datos de la subasta...</h2>
+    <h2>{{ t('auctionDetails.loading') }}</h2>
   </div>
 </template>
 
@@ -82,6 +90,10 @@ import { useAuthStore } from '../store/auth';
 import { useSubastasStore } from '../store/subastas';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
+import { useI18n } from 'vue-i18n';
+const emit = defineEmits(['close'])
+
+const { t } = useI18n(); 
 
 const props = defineProps({
   subastaId: { type: [Number, String], required: true }
@@ -132,24 +144,27 @@ const handlePuja = async () => {
       }
     };
     if (!authStore.isLoggedIn) {
-      Swal.fire({ ...swalConfig, icon: 'warning', title: '¡Atención!', text: 'Debes iniciar sesión para poder pujar.' });
+      Swal.fire({ ...swalConfig, icon: 'warning', title: t('auctionDetails.bidErrorTitle'), text: t('auctionDetails.bidLoginRequired') });
       router.push('/login');
     } else if (!activeProfile.value) {
-      Swal.fire({ ...swalConfig, icon: 'info', title: 'Perfil Requerido', text: 'Debes tener un perfil (Personal o Ganadería) para poder pujar.' });
+      Swal.fire({ ...swalConfig, icon: 'info', title: t('auctionDetails.bidProfileRequiredTitle'), text: t('auctionDetails.bidProfileRequiredText') });
     }
     return;
   }
   
   if (!nuevaPuja.value || nuevaPuja.value <= pujaMinima.value) {
-    errorPuja.value = `Tu puja debe ser mayor a ${formatCurrency(pujaMinima.value)}.`;
+    errorPuja.value = t('auctionDetails.bidError', { amount: formatCurrency(pujaMinima.value) });
     return;
   }
-  
-  errorPuja.value = '';
 
+  const pujaMaxima = subastaData.value.precioInicial
+    if (nuevaPuja.value > pujaMaxima) {
+    errorPuja.value = t('auctionDetails.bidMaxError', { amount: formatCurrency(pujaMaxima) });
+    return;
+  }
+  errorPuja.value = '';
   try {
     const pujadorNombre = activeProfile.value.nombre || activeProfile.value.nombreCompleto;
-    
     await subastasStore.placeBid({
       subastaId: subastaData.value.id,
       montoPuja: nuevaPuja.value,
@@ -158,8 +173,8 @@ const handlePuja = async () => {
     
     Swal.fire({
       icon: 'success',
-      title: '¡Éxito!',
-      text: 'Tu puja ha sido registrada correctamente.',
+      title: t('auctionDetails.bidSuccessTitle'),
+      text: t('auctionDetails.bidSuccessText'),
       timer: 2000,
       showConfirmButton: false,
       willOpen: () => {
@@ -170,15 +185,15 @@ const handlePuja = async () => {
     nuevaPuja.value = null;
 
   } catch (error) {
-    errorPuja.value = error.message || 'Hubo un error al procesar tu puja.';
+    errorPuja.value = error.message || t('auctionDetails.bidProcessError');
   }
 };
 
 const getButtonText = () => {
-  if (subastaFinalizada.value) return "Subasta Finalizada";
-  if (!authStore.isLoggedIn) return "Iniciar Sesión para Pujar";
-  if (!activeProfile.value) return "Se requiere un perfil";
-  return "Realizar Puja";
+  if (subastaFinalizada.value) return t('auctionDetails.btn.finished');
+  if (!authStore.isLoggedIn) return t('auctionDetails.btn.loginToBid');
+  if (!activeProfile.value) return t('auctionDetails.btn.profileRequired');
+  return t('auctionDetails.btn.placeBid');
 };
 
 const formatCurrency = (value, useSymbol = true) => {
@@ -190,6 +205,18 @@ const formatCurrency = (value, useSymbol = true) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
+
+
+const handleApprove = async () => {
+  await subastasStore.approveAuction(props.subastaId);
+  emit('close'); // Emite el evento para cerrar el modal
+};
+
+const handleReject = async () => {
+  await subastasStore.rejectAuction(props.subastaId);
+  emit('close'); // Emite el evento para cerrar el modal
+};
+
 
 watch(subastaData, (newData) => {
   if (newData) {
@@ -242,4 +269,29 @@ onUnmounted(() => { clearInterval(timerInterval); });
 .spec-item .label { font-size: 0.8rem; color: #A1887F; text-transform: uppercase; }
 .spec-item .value { font-size: 1rem; font-weight: 600; }
 .error-message { text-align: center; padding: 40px; }
+
+
+.admin-actions {
+  margin-top: 30px;
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff9c4;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.admin-actions h3 { margin: 0 0 10px; color: #5D4037; }
+.admin-actions button {
+  width: 200px;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-approve { background-color: #4CAF50; }
+.btn-reject { background-color: #f44336; }
 </style>

@@ -4,7 +4,7 @@
       <img src="/masvacas.jpg" alt="Ganado en el campo" :class="{ active: currentIndex === 0 }">
       <img src="/masmasvacas.jpg" alt="Toros en exhibición" :class="{ active: currentIndex === 1 }">
       <div class="image-text-container">
-        <h2>{{ currentSlide.text }}</h2>
+        <h2>{{ t(currentSlide.text) }}</h2>
         <div class="carousel-dots">
           <span v-for="(item, index) in carouselItems" :key="index" class="dot" :class="{ active: index === currentIndex }" @click="goToSlide(index)"></span>
         </div>
@@ -13,48 +13,54 @@
     <div class="form-panel">
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
-        <h1>Registro de Ganadería</h1>
+      <button @click="goToHome" class="home-button" :aria-label="t('registerRanch.homeButtonAriaLabel')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+        <h1>{{ t('registerRanch.title') }}</h1>
         
         <form @submit.prevent="handleRegister">
           <div class="form-group-full">
-            <label>Logo de la Ganadería</label>
+            <label>{{ t('registerRanch.ranchLogo') }}</label>
             <div class="file-uploader">
               <div class="file-info">
                 <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <span>Cargar un logo. Tamaño máximo 2MB</span>
+                <span>{{ t('registerRanch.uploadHint') }}</span>
               </div>
-              <label for="file-input" class="btn btn-upload">Cargar Logo</label>
+              <label for="file-input" class="btn btn-upload">{{ t('registerRanch.uploadButton') }}</label>
               <input id="file-input" type="file" @change="handleFileChange" accept="image/*" hidden />
             </div>
           </div>
           
           <div class="form-row">
             <div class="form-group">
-              <label for="ganaderiaName">Nombre de la Ganadería</label>
-              <input type="text" id="ganaderiaName" v-model="formData.nombreCompleto" placeholder="Ingrese nombre de la ganadería" required />
+              <label for="ganaderiaName">{{ t('registerRanch.ranchName') }}</label>
+              <input type="text" id="ganaderiaName" v-model="formData.nombreCompleto" :placeholder="t('registerRanch.ranchNamePlaceholder')" required />
             </div>
             <div class="form-group">
-              <label for="fundacionDate">Fecha de Fundación</label>
+              <label for="fundacionDate">{{ t('registerRanch.foundationDate') }}</label>
               <input type="date" id="fundacionDate" v-model="formData.fechaNacimiento" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="idType">Tipo de Identificación</label>
+              <label for="idType">{{ t('registerRanch.idType') }}</label>
               <select id="idType" v-model="formData.tipoCedula" required>
-                <option value="Juridica">Cédula Jurídica</option>
+                <option value="Juridica">{{ t('registerRanch.idTypeOption') }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="idNumber">Número de Cédula Jurídica</label>
-              <input type="text" id="idNumber" v-model="formData.cedula" placeholder="Ej: 3-101-123456" required />
+              <label for="idNumber">{{ t('registerRanch.idNumber') }}</label>
+              <input type="text" id="idNumber" v-model="formData.cedula" :placeholder="t('registerRanch.idNumberPlaceholder')" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group" style="flex: 0.5;">
-              <label for="countryCode">Código de país</label>
+              <label for="countryCode">{{ t('registerRanch.countryCode') }}</label>
               <select id="countryCode" v-model="formData.codigoPais" required>
                  <option value="+506">CR (+506)</option>
                  <option value="+1">US (+1)</option>
@@ -62,15 +68,15 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="phoneNumber">Número de teléfono</label>
-              <input type="tel" id="phoneNumber" v-model="formData.numeroTelefono" placeholder="Ingrese número de teléfono" required />
+              <label for="phoneNumber">{{ t('registerRanch.phoneNumber') }}</label>
+              <input type="tel" id="phoneNumber" v-model="formData.numeroTelefono" :placeholder="t('registerRanch.phoneNumberPlaceholder')" required />
             </div>
           </div>
           <div class="form-row">
              <div class="form-group">
-                <label for="province">Provincia</label>
+                <label for="province">{{ t('registerRanch.province') }}</label>
                 <select id="province" v-model="formData.direccion.provincia" required>
-                    <option disabled value="">Provincia</option>
+                    <option disabled value="">{{ t('registerRanch.provincePlaceholder') }}</option>
                     <option>San José</option>
                     <option>Alajuela</option>
                     <option>Cartago</option>
@@ -81,43 +87,46 @@
                 </select>
              </div>
              <div class="form-group">
-                <label for="canton">Cantón</label>
-                <input type="text" id="canton" v-model="formData.direccion.canton" placeholder="Cantón" required />
+                <label for="canton">{{ t('registerRanch.canton') }}</label>
+                <input type="text" id="canton" v-model="formData.direccion.canton" :placeholder="t('registerRanch.cantonPlaceholder')" required />
              </div>
              <div class="form-group">
-                <label for="district">Distrito</label>
-                <input type="text" id="district" v-model="formData.direccion.distrito" placeholder="Distrito" required />
+                <label for="district">{{ t('registerRanch.district') }}</label>
+                <input type="text" id="district" v-model="formData.direccion.distrito" :placeholder="t('registerRanch.districtPlaceholder')" required />
              </div>
           </div>
           <div class="form-group-full">
-            <label for="exactAddress">Dirección Exacta</label>
-            <input type="text" id="exactAddress" v-model="formData.direccion.senas" placeholder="Ingrese la dirección exacta" required />
+            <label for="exactAddress">{{ t('registerRanch.exactAddress') }}</label>
+            <input type="text" id="exactAddress" v-model="formData.direccion.senas" :placeholder="t('registerRanch.exactAddressPlaceholder')" required />
           </div>
           
           <template v-if="!authStore.isLoggedIn">
             <div class="form-group-full">
-              <label for="email">Correo electrónico de la cuenta</label>
-              <input type="email" id="email" v-model="formData.email" placeholder="Ingrese el correo de la cuenta" required />
+              <label for="email">{{ t('registerRanch.email') }}</label>
+              <input type="email" id="email" v-model="formData.email" :placeholder="t('registerRanch.emailPlaceholder')" required />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" v-model="formData.password" placeholder="Ingrese su contraseña" required />
+                <label for="password">{{ t('registerRanch.password') }}</label>
+                <input type="password" id="password" v-model="formData.password" :placeholder="t('registerRanch.passwordPlaceholder')" required />
               </div>
               <div class="form-group">
-                <label for="passwordConfirm">Confirmar Contraseña</label>
-                <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" placeholder="Vuelva a ingresar la contraseña" required />
+                <label for="passwordConfirm">{{ t('registerRanch.passwordConfirm') }}</label>
+                <input type="password" id="passwordConfirm" v-model="formData.passwordConfirmation" :placeholder="t('registerRanch.passwordConfirmPlaceholder')" required />
               </div>
             </div>
           </template>
           
-          <button type="submit" class="btn-submit">Registrar Ganadería</button>
+          <button type="submit" class="btn-submit">{{ t('registerRanch.registerButton') }}</button>
         </form>
         <div class="sub-link">
-          <span>¿Ya tienes una cuenta? </span>
-          <router-link to="/login">
-            <strong>Inicia sesión</strong>
-          </router-link>
+          <i18n-t keypath="registerRanch.loginPrompt" tag="span">
+            <template #loginLink>
+              <router-link to="/login">
+                <strong>{{ t('registerRanch.loginNow') }}</strong>
+              </router-link>
+            </template>
+          </i18n-t>
         </div>
       </div>
     </div>
@@ -128,15 +137,16 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
+import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
-
+const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 
 const formData = reactive({
   nombreCompleto: '',
-  fechaNacimiento: '', // Usado para Fecha de Fundación
-  tipoCedula: 'Juridica', // Por defecto Jurídica
+  fechaNacimiento: '', 
+  tipoCedula: 'Juridica', 
   cedula: '',
   codigoPais: '+506',
   numeroTelefono: '',
@@ -144,8 +154,12 @@ const formData = reactive({
   email: '',
   password: '',
   passwordConfirmation: '',
-  profileImage: null, // Para el logo
+  profileImage: null, 
 });
+
+const goToHome = () => {
+  router.push('/');
+};
 
 const handleFileChange = (event) => {
   formData.profileImage = event.target.files[0] || null;
@@ -196,10 +210,7 @@ const handleRegister = async () => {
   }
 };
 
-const carouselItems = computed(() => [
-  { text: 'Conectando criadores, fortaleciendo el campo.' },
-  { text: 'La plataforma líder para subastas de ganado.' },
-]);
+const carouselItems = computed(() => [ { text: t('registerRach.carousel.slide1') }, { text: t('registerRach.carousel.slide2') }, ]);
 const currentIndex = ref(0);
 let intervalId = null;
 const currentSlide = computed(() => carouselItems.value[currentIndex.value]);
@@ -375,6 +386,23 @@ select {
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 1em;
+}
+
+.home-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--color-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+.home-button:hover {
+  background-color: #EAE3E0;
+  color: var(--color-primary);
 }
 
 .file-uploader {

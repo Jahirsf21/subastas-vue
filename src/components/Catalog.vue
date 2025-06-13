@@ -1,64 +1,82 @@
 <template>
   <div class="catalog-page">
-    <!-- Sección de Carga -->
+    <!-- El botón ahora cambia el estado para mostrar el modal -->
+    <button @click="openCreateAuctionModal" class="create-auction-btn">
+      {{ t('catalog.createAuction') }}
+    </button>
+    
+    <!-- Contenido existente de la página -->
     <div v-if="subastasStore.isLoading" class="status-message">
       <div class="spinner"></div>
-      <p>Cargando subastas...</p>
+      <p>{{ t('catalog.loading') }}</p>
     </div>
-
-    <!-- Sección de Error -->
     <div v-else-if="subastasStore.error" class="status-message error">
-      <h3>¡Oops! Algo salió mal</h3>
+      <h3>{{ t('catalog.errorTitle') }}</h3>
       <p>{{ subastasStore.error }}</p>
-      <button @click="retryFetch" class="retry-button">Reintentar</button>
+      <button @click="retryFetch" class="retry-button">{{ t('catalog.retry') }}</button>
     </div>
-
-    <!-- Catálogo con Resultados -->
-    <div v-else-if="subastasStore.processedSubastas.length > 0" class="catalog-grid">
+    <div v-else-if="auctionsToShow.length > 0" class="catalog-grid">
       <AuctionCard 
-        v-for="subasta in subastasStore.processedSubastas" 
+        v-for="subasta in auctionsToShow" 
         :key="subasta.id" 
         :subasta="subasta"
         @click="openSubastaDetails(subasta)"
       />
     </div>
-
-    <!-- Sección de "No hay Resultados" -->
     <div v-else class="status-message">
-      <!-- ¡CAMBIO! Mensaje dinámico si hay una búsqueda activa -->
-      <h3 v-if="subastasStore.searchQuery">No se encontraron resultados para "{{ subastasStore.searchQuery }}"</h3>
-      <h3 v-else>No hay subastas disponibles</h3>
-      <p>Intenta con otra búsqueda o ajusta tus filtros.</p>
+      <h3 v-if="subastasStore.searchQuery">{{ t('catalog.noResultsFor', { query: subastasStore.searchQuery }) }}</h3>
+      <h3 v-else>{{ t('catalog.noAuctions') }}</h3>
+      <p>{{ t('catalog.tryAnotherSearch') }}</p>
     </div>
   </div>
-
-  <!-- Modal para los detalles de la subasta -->
   <div v-if="selectedSubastaId" class="modal-overlay" @click.self="closeSubastaDetails">
     <div class="modal-content">
-      <button @click="closeSubastaDetails" class="close-button">×</button>
-      <SubastaDetails :subastaId="selectedSubastaId" />
+      <button @click="closeSubastaDetails" class="close-button" :aria-label="t('catalog.close')">×</button>
+      <!-- Escuchamos el evento 'close' y llamamos a la función para cerrar -->
+      <SubastaDetails :subastaId="selectedSubastaId" @close="closeSubastaDetails" />
     </div>
   </div>
+
+  <!-- ¡NUEVO! Modal para Crear Subasta -->
+  <CreateAuction v-if="isCreateModalVisible" @close="closeCreateAuctionModal" />
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { computed } from 'vue';
+import { useAuthStore } from '../store/auth'; // Importa el store de auth
 import { useSubastasStore } from '../store/subastas';
 import AuctionCard from '../components/AuctionCard.vue';
 import SubastaDetails from '../components/SubastaDetails.vue'; 
+import { useI18n } from 'vue-i18n';
+import CreateAuction from './forms/crearSubasta.vue'
 
+
+const authStore = useAuthStore();
 const subastasStore = useSubastasStore();
 const selectedSubastaId = ref(null);
+const { t } = useI18n();
+
+// 2. CREAR ESTADO para el nuevo modal
+const isCreateModalVisible = ref(false);
+
+const auctionsToShow = computed(() => {
+  // Si es admin, usa el getter que combina activas y pendientes
+  if (authStore.isAdmin) {
+    return subastasStore.allSubastasForAdmin;
+  }
+  // Si no, usa el getter normal que solo muestra activas
+  return subastasStore.processedSubastas;
+});
 
 onMounted(() => {
-  // Carga las subastas si el array en el store está vacío
-  if (subastasStore.subastas.length === 0) {
-    subastasStore.fetchSubastas();
-  }
+  subastasStore.fetchSubastas(authStore.isAdmin);
+
 });
 
 const retryFetch = () => {
-  subastasStore.fetchSubastas();
+  subastasStore.fetchSubastas(authStore.isAdmin);
 };
 
 const openSubastaDetails = (subasta) => {
@@ -68,9 +86,20 @@ const openSubastaDetails = (subasta) => {
 const closeSubastaDetails = () => {
   selectedSubastaId.value = null;
 };
+
+// 3. AÑADIR FUNCIONES para abrir y cerrar el modal de creación
+const openCreateAuctionModal = () => {
+  isCreateModalVisible.value = true;
+};
+
+const closeCreateAuctionModal = () => {
+  isCreateModalVisible.value = false;
+};
+
 </script>
 
 <style scoped>
+/* Los estilos se mantienen exactamente iguales, no necesitan cambios. */
 .catalog-page {
   padding: 24px;
   background-color: #f9f9f9; 
@@ -166,5 +195,28 @@ const closeSubastaDetails = () => {
 }
 .close-button:hover {
   color: #333;
+}
+
+.create-auction-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #A85B2C; 
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.create-auction-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  background-color: #5C3218;
 }
 </style>

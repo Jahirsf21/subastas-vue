@@ -9,7 +9,6 @@
       </header>
 
       <main class="account-content">
-        <!-- VISTA CUANDO NO ESTÁ LOGUEADO -->
         <template v-if="!isLoggedIn">
           <div class="section">
             <button @click="goToLogin" class="list-item interactive" aria-label="Iniciar sesión">
@@ -101,7 +100,8 @@
                   <img src="/icons/row.svg" alt="" class="arrow-icon">
               </div>
             </button>
-            <button @click="goToRoute('/auctions-status')" class="list-item interactive">
+
+            <button @click="openMyAuctionsModal" class="list-item interactive">
               <div class="item-content">
                 <img src="/icons/estadosSubastas.svg" alt="" class="item-icon">
                 <span>{{ t('profile.auction_status') }}</span>
@@ -142,6 +142,10 @@
   <transition name="fade">
     <PaidMethod v-if="showPaidMethodModal" @close="showPaidMethodModal = false" />
   </transition>
+
+  <transition name="fade">
+    <MyAuctionsStatus v-if="showMyAuctionsModal" @close="showMyAuctionsModal = false" />
+  </transition>
 </template>
 
 <script setup>
@@ -151,8 +155,15 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import PaidMethod from '../components/PaidMethod.vue';
+import MyAuctionsStatus from '../components/MyAuctionsStatus.vue';
 
 const emit = defineEmits(['close']);
+
+const showMyAuctionsModal = ref(false); // ¡NUEVO! Estado para el modal
+
+const openMyAuctionsModal = () => {
+  showMyAuctionsModal.value = true;
+};
 
 const { t } = useI18n();
 const authStore = useAuthStore();

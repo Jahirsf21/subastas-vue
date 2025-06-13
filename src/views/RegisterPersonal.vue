@@ -11,10 +11,15 @@
       </div>
     </div>
     <div class="form-panel">
+      <button @click="goToHome" class="home-button" aria-label="Volver a la página de inicio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
       <img src="/logo.png" alt="Logo N&D" class="logo" />
       <div class="form-content">
         <h1>{{ t('register.title') }}</h1>
-        
         <form @submit.prevent="handleRegister">
           <div class="form-group-full">
             <label>{{ t('register.profilePhoto') }}</label>
@@ -92,8 +97,7 @@
             <label for="exactAddress">{{ t('register.exactAddress') }}</label>
             <input type="text" id="exactAddress" v-model="formData.direccion.senas" :placeholder="t('register.exactAddressPlaceholder')" required />
           </div>
-          
-          <!-- CAMPO CONDICIONAL: Solo para usuarios no logueados -->
+        
           <template v-if="!authStore.isLoggedIn">
             <div class="form-group-full">
               <label for="email">{{ t('register.email') }}</label>
@@ -152,6 +156,10 @@ const formData = reactive({
   profileImage: null,
 });
 
+const goToHome = () => {
+  router.push('/');
+};
+
 const handleFileChange = (event) => {
   formData.profileImage = event.target.files[0] || null;
 };
@@ -165,7 +173,6 @@ const handleRegister = async () => {
   }
   
   try {
-    // Se construye el payload base con los datos del perfil
     const registrationPayload = {
       tipoCuenta: 'Personal',
       nombreCompleto: formData.nombreCompleto,
@@ -177,12 +184,10 @@ const handleRegister = async () => {
     };
 
     if (user) {
-      // --- Si el usuario ESTÁ logueado ---
-      // Añadimos solo su email. NO enviamos la contraseña.
+
       registrationPayload.email = user.email;
     } else {
-      // --- Si el usuario NO está logueado ---
-      // Añadimos el email y la contraseña del formulario.
+
       registrationPayload.email = formData.email;
       registrationPayload.password = formData.password;
     }
@@ -197,9 +202,7 @@ const handleRegister = async () => {
       timerProgressBar: true,
       showConfirmButton: false,
     });
-    
-    // Si ya estaba logueado, lo mandamos a su perfil para ver el cambio.
-    // Si era nuevo, al login para que inicie sesión.
+
     router.push(user ? '/profile' : '/login');
 
   } catch (error) {
@@ -209,7 +212,6 @@ const handleRegister = async () => {
   }
 };
 
-// ... (resto del script sin cambios) ...
 const carouselItems = computed(() => [ { text: t('register.carousel.slide1') }, { text: t('register.carousel.slide2') }, ]);
 const currentIndex = ref(0);
 let intervalId = null;
@@ -231,7 +233,6 @@ onUnmounted(() => { clearInterval(intervalId); });
 
 
 <style scoped>
-/* Tus estilos no necesitan cambios */
 .register-page {
   position: fixed;
   top: 0;
@@ -384,6 +385,23 @@ select {
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 1em;
+}
+
+.home-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--color-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+.home-button:hover {
+  background-color: #EAE3E0;
+  color: var(--color-primary);
 }
 
 .file-uploader {

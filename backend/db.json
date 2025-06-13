@@ -12,7 +12,13 @@
         "telefono": "+50662435191",
         "direccion": "Limón, Limón, Central. Barrio San Juan"
       },
-      "perfilGanaderia": null
+      "perfilGanaderia": {
+        "nombre": "Caracolitos",
+        "fechaFundacion": "92992-09-12",
+        "cedulaJuridica": "70303090936",
+        "telefono": "+50662435191",
+        "direccion": "Limón, Limón, Central. Barrio San Juan"
+      }
     }
   ],
   "subastas": [
@@ -84,7 +90,7 @@
         "/vaca4.png"
       ],
       "pujador": "Jahir sanchez funez",
-      "puja": 1146000,
+      "puja": null,
       "genero": "Hembra",
       "categoria": "Ternera",
       "estado": "Nuevo",
@@ -123,6 +129,45 @@
       },
       "fechaInicio": "2025-06-10T02:58:44.570Z",
       "fechaFinal": "2025-06-12T02:58:44.570Z"
+    },
+    {
+      "id": 1749800392893,
+      "titulo": "Subasta de mi cola",
+      "raza": "mi cola",
+      "genero": "Macho",
+      "categoria": "Ternero",
+      "edad": "2 meses",
+      "peso": "70 kg",
+      "genetica": "80%",
+      "vacunaciones": "IBR",
+      "descripcion": "Se subasta mi cola",
+      "precioInicial": 120000,
+      "fechaFinal": "2025-06-14T05:39",
+      "imagenes": [
+        "/img/placeholder.jpg"
+      ],
+      "lote": "",
+      "fechaNacimiento": "",
+      "finca": "",
+      "fierro": "",
+      "vendedor": {
+        "tipo": "Personal",
+        "nombre": "Jahir sanchez funez",
+        "logo": "/logo-predeterminado.png"
+      },
+      "estado": "activa",
+      "pujador": null,
+      "puja": null,
+      "fechaInicio": "2025-06-13T08:32:33.936Z"
+    }
+  ],
+  "subastasPendientes": [],
+  "admins": [
+    {
+      "id": 101,
+      "email": "admin@subastas.com",
+      "password": "adminpass",
+      "nombre": "Admin Principal"
     }
   ]
 }

@@ -1,4 +1,3 @@
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -8,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
-app.use(cors()); 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -27,16 +26,17 @@ const generateAuctionDates = (daysUntilEnd) => {
 
 const getDefaultData = () => ({
   users: [],
-  subastas: []
+  subastas: [],
+  subastasPendientes: [],
+  admins: [] // Valor por defecto para administradores
 });
 
 const readDB = () => {
     try {
         if (fs.existsSync(DB_FILE)) {
             const data = fs.readFileSync(DB_FILE, 'utf8');
-            const jsonData = JSON.parse(data);
-            jsonData.users = jsonData.users || [];
-            jsonData.subastas = jsonData.subastas || getDefaultData().subastas;
+            // Parseamos los datos, pero si falta alguna clave, usamos el valor por defecto.
+            const jsonData = { ...getDefaultData(), ...JSON.parse(data) };
             return jsonData;
         }
     } catch (error) {
@@ -56,15 +56,38 @@ const writeDB = (data) => {
 let db = readDB();
 
 
+// --- RUTA DE LOGIN MODIFICADA PARA MANEJAR ADMINS ---
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
+
+    // 1. Primero, buscar en la lista de administradores
+    const admin = db.admins.find(a => a.email === email && a.password === password);
+    if (admin) {
+        console.log(`Administrador ${email} autenticado.`);
+        // Creamos un objeto de respuesta para el admin con su rol
+        const adminData = {
+            id: admin.id,
+            email: admin.email,
+            nombre: admin.nombre,
+            rol: 'admin' // Propiedad clave para el frontend
+        };
+        return res.json({ token: 'fake-admin-jwt-token', user: adminData });
+    }
+
+    // 2. Si no es admin, buscar en la lista de usuarios normales
     const user = db.users.find(u => u.email === email && u.password === password);
     if (user) {
         console.log(`Usuario ${email} autenticado.`);
-        return res.json({ token: 'fake-jwt-token-for-dev', user });
+        // Añadimos rol de 'user' al objeto de usuario para consistencia
+        const userData = { ...user, rol: 'user' };
+        return res.json({ token: 'fake-jwt-token-for-dev', user: userData });
     }
+
+    // 3. Si no se encuentra en ninguna lista, credenciales inválidas
     res.status(401).json({ message: 'Credenciales inválidas' });
 });
+// --- FIN DE LA RUTA DE LOGIN MODIFICADA ---
+
 
 app.post('/api/auth/register', (req, res) => {
     const { email, password, tipoCuenta, ...profileData } = req.body;
@@ -111,6 +134,46 @@ app.get('/api/subastas', (req, res) => {
   res.status(200).json(db.subastas);
 });
 
+
+app.get('/api/admin/subastas-pendientes', (req, res) => {
+  // Aquí podrías añadir lógica para verificar si el que pide es un admin (usando un token/middleware real)
+  res.status(200).json(db.subastasPendientes || []);
+});
+
+app.post('/api/admin/subastas/:id/manage', (req, res) => {
+  const subastaId = parseInt(req.params.id, 10);
+  const { action } = req.body; // action puede ser 'aprobar' o 'rechazar'
+
+  const subastaIndex = db.subastasPendientes.findIndex(s => s.id === subastaId);
+  if (subastaIndex === -1) {
+    return res.status(404).json({ message: "Subasta pendiente no encontrada." });
+  }
+
+  // Extraer la subasta de la lista de pendientes
+  const [subastaGestionada] = db.subastasPendientes.splice(subastaIndex, 1);
+
+  if (action === 'aprobar') {
+    // Si se aprueba, se mueve a la lista de subastas activas
+    subastaGestionada.estado = 'activa'; // O 'Nuevo', como prefieras
+    subastaGestionada.fechaInicio = new Date().toISOString(); // Se establece la fecha de inicio al aprobar
+    db.subastas.push(subastaGestionada);
+    writeDB(db);
+    console.log(`Subasta ${subastaId} aprobada.`);
+    return res.status(200).json({ message: "Subasta aprobada exitosamente." });
+
+  } else if (action === 'rechazar') {
+    // Si se rechaza, simplemente se elimina (o se podría mover a otra lista 'rechazadas')
+    writeDB(db);
+    console.log(`Subasta ${subastaId} rechazada.`);
+    return res.status(200).json({ message: "Subasta rechazada exitosamente." });
+
+  } else {
+    // Si la acción no es válida, la devolvemos a pendientes
+    db.subastasPendientes.push(subastaGestionada);
+    return res.status(400).json({ message: "Acción no válida." });
+  }
+});
+
 app.get('/api/subastas/:id', (req, res) => {
   const subastaId = parseInt(req.params.id, 10);
   const subasta = db.subastas.find(s => s.id === subastaId);
@@ -138,6 +201,47 @@ app.post('/api/subastas/:id/pujar', (req, res) => {
 
   res.status(200).json(subasta);
 });
+
+
+app.get('/api/user/subastas', (req, res) => {
+  const { nombreVendedor } = req.query;
+
+  if (!nombreVendedor) {
+    return res.status(400).json({ message: "Se requiere el nombre del vendedor." });
+  }
+
+  // Buscamos en ambas listas: activas y pendientes
+  const activas = db.subastas.filter(s => s.vendedor?.nombre === nombreVendedor);
+  const pendientes = db.subastasPendientes.filter(s => s.vendedor?.nombre === nombreVendedor);
+
+  // Unimos los resultados
+  const misSubastas = [...pendientes, ...activas];
+
+  res.status(200).json(misSubastas);
+});
+
+
+app.post('/api/subastas', (req, res) => {
+  const newAuctionData = req.body;
+
+  if (!newAuctionData.raza || !newAuctionData.precioInicial || !newAuctionData.fechaFinal) {
+    return res.status(400).json({ message: "Faltan datos esenciales para crear la subasta." });
+  }
+
+  const newPendingAuction = {
+    id: Date.now(), 
+    ...newAuctionData,
+    fechaInicio: new Date().toISOString(), 
+    estado: 'pendiente' 
+  };
+
+  db.subastasPendientes.push(newPendingAuction);
+  writeDB(db);
+
+  console.log('Nueva subasta pendiente registrada:', newPendingAuction.id);
+  res.status(201).json({ message: "Subasta registrada y pendiente de aprobación.", subasta: newPendingAuction });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Servidor backend de Subastas corriendo en http://localhost:${PORT}`);

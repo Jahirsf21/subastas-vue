@@ -20,15 +20,22 @@
           <span>{{ subasta.estado }}</span>
         </div>
       </div>
-      <p class="type">{{ subasta.tipo }}</p>
-      <p class="weight">Peso: {{ subasta.peso }}</p>
-      <p class="price">Precio base: <strong>{{ formatCurrency(subasta.precioInicial) }}</strong></p>
+      <p class="type">{{ subasta.categoria }}</p>
+      <p class="weight">{{ t('categories.weight') }}: {{ subasta.peso }}</p>
+      <p class="price">{{ t('categories.price') }}: <strong>{{ formatCurrency(subasta.precioInicial) }}</strong></p>
+    </div>
+    
+    <!-- El overlay ahora está aquí, fuera del info-container -->
+    <div v-if="subasta.esPendiente" class="pending-overlay">
+      <span>PENDIENTE DE APROBACIÓN</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const props = defineProps({
   subasta: {
@@ -42,7 +49,9 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CR', {
     style: 'currency',
     currency: 'CRC',
-    minimumFractionDigits: 2,
+    // Ajustado para que no muestre decimales, como en tu imagen
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0, 
   }).format(value);
 };
 </script>
@@ -57,6 +66,7 @@ const formatCurrency = (value) => {
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  position: relative; /* ¡MUY IMPORTANTE! para que el overlay se posicione correctamente */
 }
 
 .auction-card:hover {
@@ -95,6 +105,7 @@ const formatCurrency = (value) => {
   cursor: pointer;
   padding: 0;
   color: white;
+  z-index: 2; /* Asegura que esté sobre la imagen */
 }
 .favorite-button:hover svg {
   fill: white;
@@ -113,6 +124,7 @@ const formatCurrency = (value) => {
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 500;
+  z-index: 2;
 }
 
 .ranch-logo {
@@ -172,5 +184,25 @@ p {
 .price strong {
   color: #5D4037;
   font-weight: 700;
+}
+
+
+.pending-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(253, 216, 53, 0.75); /* Amarillo como en la imagen */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3E2723; /* Un color oscuro para el texto */
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.2rem;
+  z-index: 5; /* Asegura que esté sobre todo lo demás */
+  border-radius: 16px; /* Para que coincida con la tarjeta */
+  backdrop-filter: blur(2px); /* Efecto de desenfoque opcional */
 }
 </style>
