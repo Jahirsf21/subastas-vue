@@ -1,6 +1,4 @@
-// ARCHIVO DE TU SERVIDOR BACKEND (index.js o server.js)
 
-// --- 1. Importaciones y Configuración Inicial ---
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,13 +8,11 @@ const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
-// --- 2. Middleware ---
 app.use(cors()); 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// --- 3. PERSISTENCIA DE DATOS CON ARCHIVO JSON ---
 const DB_FILE = path.join(__dirname, 'db.json');
 
 const generateAuctionDates = (daysUntilEnd) => {
@@ -39,7 +35,6 @@ const readDB = () => {
         if (fs.existsSync(DB_FILE)) {
             const data = fs.readFileSync(DB_FILE, 'utf8');
             const jsonData = JSON.parse(data);
-            // Asegurarse de que los arrays existan
             jsonData.users = jsonData.users || [];
             jsonData.subastas = jsonData.subastas || getDefaultData().subastas;
             return jsonData;
@@ -60,8 +55,6 @@ const writeDB = (data) => {
 
 let db = readDB();
 
-
-// --- 4. Rutas de la API (Endpoints) ---
 
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
@@ -141,15 +134,11 @@ app.post('/api/subastas/:id/pujar', (req, res) => {
 
   subasta.puja = montoPuja;
   subasta.pujador = pujador;
-
-  // GUARDAR LOS CAMBIOS EN LA SUBASTA
   writeDB(db);
 
   res.status(200).json(subasta);
 });
 
-
-// --- 5. Iniciar el Servidor ---
 app.listen(PORT, () => {
   console.log(`Servidor backend de Subastas corriendo en http://localhost:${PORT}`);
 });

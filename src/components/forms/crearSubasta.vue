@@ -5,7 +5,7 @@
 
 <script setup>
 import { reactive } from 'vue';
-import { useSubastasStore } from '../stores/subastas';
+import { useSubastasStore } from '../../stores/subastas';
 
 
 const subastaStore = useSubastasStore();

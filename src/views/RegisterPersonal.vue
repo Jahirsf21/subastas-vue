@@ -130,7 +130,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../../store/auth';
+import { useAuthStore } from '../store/auth';
 import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
 

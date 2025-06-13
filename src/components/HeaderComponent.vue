@@ -77,13 +77,12 @@ const activeProfileName = computed(() => {
   return activeProfileInfo.value?.nombre || activeProfileInfo.value?.nombreCompleto || "Mi Perfil";
 });
 
-// Lógica del Modal de Perfil
 const showProfileModal = ref(false);
 const openProfileModal = () => {
   showProfileModal.value = true;
 };
 
-// Lógica de Búsqueda
+
 const updateSearchQuery = (event) => {
   subastasStore.setSearchQuery(event.target.value);
   if (router.currentRoute.value.path !== '/catalog') {
@@ -96,7 +95,7 @@ const performSearch = () => {
   }
 };
 
-// Lógica del Menú de Idiomas
+
 const showLanguageMenu = ref(false);
 const toggleLanguageMenu = () => {
   showLanguageMenu.value = !showLanguageMenu.value;

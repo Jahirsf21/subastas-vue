@@ -13,7 +13,6 @@
       </header>
 
       <main class="account-content">
-        <!-- SECCIÓN DE TARJETAS GUARDADAS -->
         <div class="section">
           <h2 class="section-title">Tarjetas Guardadas</h2>
           <div v-if="savedCards.length > 0">
@@ -30,8 +29,6 @@
           </div>
           <p v-else class="no-cards-message">No tienes tarjetas guardadas.</p>
         </div>
-
-        <!-- SECCIÓN PARA AGREGAR NUEVA TARJETA -->
         <div class="section">
           <h2 class="section-title">Agregar Nueva Tarjeta</h2>
           <form @submit.prevent="addCard" class="card-form">
@@ -109,7 +106,6 @@ const addCard = () => {
     icon: 'success',
     title: '¡Éxito!',
     text: 'Tarjeta agregada correctamente.',
-    // ¡CAMBIO! Se usa el hook 'willOpen'
     willOpen: () => {
       const container = Swal.getContainer();
       if (container) {

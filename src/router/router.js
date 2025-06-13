@@ -3,9 +3,8 @@ import { useAuthStore } from '../store/auth';
 
 import HomePage from '../views/HomePage.vue';
 import Login from '../views/Login.vue';
-import Profile from '../views/Profile.vue';
-import RegisterGanaderia from '../components/forms/RegisterGanaderia.vue';
-import RegisterPersonal from '../components/forms/RegisterPersonal.vue';
+import RegisterGanaderia from '../views/RegisterGanaderia.vue';
+import RegisterPersonal from '../views/RegisterPersonal.vue';
 import SelectTypeAccount from '../components/SelectTypeAccount.vue';
 
 const routes = [
@@ -37,12 +36,6 @@ const routes = [
         component: RegisterPersonal,
         meta: { profileType: 'Personal' } // Añadimos metadatos
     },
-    {
-        path: '/profile',
-        name: 'profile',
-        component: Profile,
-        meta: { requiresAuth: true }
-    }
 ];
 
 const router = createRouter({

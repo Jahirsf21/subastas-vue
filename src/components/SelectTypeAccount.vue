@@ -1,16 +1,6 @@
 <template>
   <div class="selection-page">
     <div class="header-section">
-      <div class="header-left">
-        <img src="/logo.png" alt="Logo" class="logo">
-        <button @click="goBackToLogin" class="back-button" aria-label="Volver a inicio de sesión">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 8 8 12 12 16"></polyline>
-            <line x1="16" y1="12" x2="8" y2="12"></line>
-          </svg>
-        </button>
-      </div>
       <!-- BOTÓN DE REGRESO A HOME -->
       <button @click="goToHome" class="home-button" aria-label="Volver a la página de inicio">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,10 +68,10 @@ const goToHome = () => {
   position: absolute;
   top: 20px;
   left: 20px;
-  right: 20px; /* Asegura que ocupe todo el ancho */
+  right: 20px; 
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Alinea los elementos a los extremos */
+  justify-content: space-between; 
 }
 
 .header-left {

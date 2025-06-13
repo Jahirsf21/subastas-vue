@@ -1,13 +1,12 @@
 // src/main.js
 import 'sweetalert2/dist/sweetalert2.min.css';
-import { createApp, watch } from 'vue' // <-- Importa 'watch'
+import { createApp, watch } from 'vue' 
 import App from './App.vue'
 import router from './router/router'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-// Tus importaciones de idiomas
 import enContent from './i18n/en.json'
 import esContent from './i18n/es.json'
 import frContent from './i18n/fr.json'

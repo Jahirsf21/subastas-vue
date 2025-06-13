@@ -2,16 +2,11 @@ import { defineStore } from 'pinia';
 import AuthService from '../services/authService';
 
 const storedData = JSON.parse(localStorage.getItem('user'));
-// Leemos el perfil activo de localStorage, o por defecto 'Personal' si existe.
 const activeProfile = localStorage.getItem('activeProfile') || 'Personal';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     data: storedData || null,
-    /**
-     * ¡NUEVO! Indica qué perfil está usando el usuario.
-     * Puede ser 'Personal' o 'Ganaderia'.
-     */
     activeProfile: storedData ? activeProfile : null,
   }),
 
@@ -20,7 +15,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const responseData = await AuthService.login(userCredentials);
         this.data = responseData;
-        // Al hacer login, por defecto activamos el perfil personal si existe, si no, el de ganadería.
         const defaultProfile = responseData.user?.perfilPersonal ? 'Personal' : 'Ganaderia';
         this.setActiveProfile(defaultProfile);
         return Promise.resolve(responseData);
@@ -52,10 +46,6 @@ export const useAuthStore = defineStore('auth', {
       this.data = updatedData;
       localStorage.setItem('user', JSON.stringify(updatedData));
     },
-
-    /**
-     * ¡NUEVA ACCIÓN! Para cambiar el perfil activo.
-     */
     setActiveProfile(profileType) {
       if (profileType === 'Personal' && this.currentUser?.perfilPersonal) {
         this.activeProfile = 'Personal';
@@ -66,13 +56,26 @@ export const useAuthStore = defineStore('auth', {
       console.log(`Perfil activo cambiado a: ${this.activeProfile}`);
     },
 
-    async deleteAccount(credentials) { /* ... sin cambios ... */ }
+    async deleteAccount(credentials) {
+      if (!credentials || !credentials.email || !credentials.password) {
+        return Promise.reject(new Error("Credenciales no proporcionadas para eliminar la cuenta."));
+      }
+      
+      try {
+        await AuthService.deleteAccount(credentials);
+
+        this.logout(); 
+
+        return Promise.resolve({ message: "Cuenta eliminada exitosamente." });
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    }
   },
   
   getters: {
     isLoggedIn: (state) => !!state.data,
     currentUser: (state) => state.data?.user || null,
-    // ¡NUEVO! Getter para obtener la información del perfil que está activo.
     activeProfileData: (state) => {
       if (!state.currentUser) return null;
       if (state.activeProfile === 'Personal') {

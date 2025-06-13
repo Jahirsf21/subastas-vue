@@ -156,7 +156,6 @@ const handlePuja = async () => {
       pujador: pujadorNombre,
     });
     
-    // ¡CAMBIO! Se añade la configuración de z-index a esta alerta.
     Swal.fire({
       icon: 'success',
       title: '¡Éxito!',

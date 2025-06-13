@@ -1,32 +1,12 @@
 {
   "users": [
     {
-      "id": 1749524383736,
+      "id": 1749794362781,
       "email": "deislhersanchezfunez@gmail.com",
       "password": "jahir",
       "perfilPersonal": {
         "nombreCompleto": "Jahir sanchez funez",
-        "fechaNacimiento": "2004-08-12",
-        "tipoCedula": "Cedula",
-        "cedula": "703090936",
-        "telefono": "+50662435191",
-        "direccion": "Limón, Limón, Central. Barrio San Juan"
-      },
-      "perfilGanaderia": {
-        "nombre": "Caracolitos",
-        "fechaFundacion": "1992-09-12",
-        "cedulaJuridica": "70303090936",
-        "telefono": "+50662435191",
-        "direccion": "Limón, Limón, Central. Barrio San Juan"
-      }
-    },
-    {
-      "id": 1749524888159,
-      "email": "Jahirsanchezfunez@gmail.com",
-      "password": "jahir",
-      "perfilPersonal": {
-        "nombreCompleto": "Emili Robles",
-        "fechaNacimiento": "2004-05-24",
+        "fechaNacimiento": "1222-05-12",
         "tipoCedula": "Cedula",
         "cedula": "70303090936",
         "telefono": "+50662435191",
@@ -49,8 +29,8 @@
       "imagenes": [
         "/brahman-gris-toro.png"
       ],
-      "pujador": "Emili Robles",
-      "puja": 12520000,
+      "pujador": "Jahir sanchez funez",
+      "puja": 12520001,
       "genero": "Macho",
       "categoria": "Toro",
       "estado": "Nuevo",

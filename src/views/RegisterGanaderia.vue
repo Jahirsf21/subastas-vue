@@ -127,7 +127,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../../store/auth';
+import { useAuthStore } from '../store/auth';
 import Swal from 'sweetalert2';
 
 const authStore = useAuthStore();
@@ -162,7 +162,6 @@ const handleRegister = async () => {
   try {
     const registrationPayload = {
       tipoCuenta: 'Ganaderia',
-      // Mapeo de campos del formulario a lo que espera el backend
       nombre: formData.nombreCompleto,
       fechaFundacion: formData.fechaNacimiento,
       cedulaJuridica: formData.cedula,
@@ -188,7 +187,7 @@ const handleRegister = async () => {
       showConfirmButton: false,
     });
     
-    router.push(user ? '/profile' : '/login');
+    router.push('/');
 
   } catch (error) {
     console.error('Registration failed:', error);

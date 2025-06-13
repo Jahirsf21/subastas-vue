@@ -2,7 +2,6 @@
 
 import axios from 'axios';
 
-// La URL base de tu API backend
 const API_URL = 'http://localhost:3000/api/';
 
 class SubastaService {
@@ -21,7 +20,6 @@ class SubastaService {
    * @returns {Promise<AxiosResponse<any>>}
    */
   getById(id) {
-    // Hace una petición GET a http://localhost:3000/api/subastas/{id}
     return axios.get(API_URL + `subastas/${id}`);
   }
 
