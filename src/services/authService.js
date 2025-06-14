@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000/api/auth/';
 
 class AuthService {
-  login(userCredentials) {
+  async login(userCredentials) {
     return axios
       .post(API_URL + 'login', {
         email: userCredentials.email,

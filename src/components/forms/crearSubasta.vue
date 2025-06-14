@@ -102,9 +102,13 @@ const handleImageUpload = (event) => {
 
 const handleSubmit = async () => {
   const swalConfig = { willOpen: () => { const container = Swal.getContainer(); if (container) { container.style.zIndex = '4000'; } } };
+  
   const activeProfileData = authStore.activeProfileData;
-  if (!activeProfileData) {
-    console.error("No hay perfil activo.");
+  const currentUser = authStore.currentUser;
+
+  if (!activeProfileData || !currentUser) {
+    console.error("No hay perfil activo o usuario logueado.");
+    Swal.fire({ ...swalConfig, icon: 'error', title: 'Error', text: 'Debes estar logueado y tener un perfil activo para crear una subasta.' });
     return;
   }
   
@@ -112,21 +116,30 @@ const handleSubmit = async () => {
 
   // 1. Añade los campos de texto del formulario
   for (const key in formData) {
-    if (key !== 'imagenes' && formData[key]) {
+    // Asegurarse de no enviar campos vacíos que no sean requeridos
+    if (key !== 'imagenes' && formData[key] !== '' && formData[key] !== null) {
       dataToSend.append(key, formData[key]);
     }
   }
 
-  // 2. Añade la información del vendedor por separado para evitar errores de parseo
+  // =======================================================
+  //  CAMBIO CLAVE: AÑADIR EL ID DEL VENDEDOR
+  // =======================================================
+  dataToSend.append('vendedorId', currentUser.id); // <-- SE AÑADE EL ID DEL USUARIO
+  // =======================================================
+  
+  // 2. Añade la información del perfil del vendedor
   dataToSend.append('vendedorTipo', authStore.activeProfile);
   dataToSend.append('vendedorNombre', activeProfileData.nombre || activeProfileData.nombreCompleto);
-  dataToSend.append('vendedorLogo', activeProfileData.logo || '/logo-predeterminado.png');
-
   // 3. Añade los archivos de imagen
   if (formData.imagenes.length > 0) {
     formData.imagenes.forEach(file => {
       dataToSend.append('imagenes', file);
     });
+  } else {
+    // Opcional: Validar que al menos una imagen sea subida
+    Swal.fire({ ...swalConfig, icon: 'warning', title: 'Falta Imagen', text: 'Por favor, sube al menos una imagen para la subasta.' });
+    return;
   }
 
   try {

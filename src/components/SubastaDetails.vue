@@ -1,6 +1,7 @@
 <template>
   <div v-if="subastaData" class="subasta-details">
     <div class="main-content">
+      <!-- Columna Izquierda: Galería de Imágenes -->
       <div class="image-gallery">
         <img :src="backendUrl + mainImage" :alt="subastaData.titulo" class="main-image">
         <div v-if="subastaData.imagenes && subastaData.imagenes.length > 1" class="thumbnail-strip">
@@ -16,6 +17,7 @@
         </div>
       </div>
 
+      <!-- Columna Derecha: Información y Acciones -->
       <div class="info-panel">
         <h2 class="title">{{ subastaData.titulo }}</h2>
         <p class="description">{{ subastaData.descripcion }}</p>
@@ -36,7 +38,30 @@
           </div>
         </div>
         
-        <form @submit.prevent="handlePuja" class="bid-form">
+        <!-- ======================================================= -->
+        <!--  VISTA CONDICIONAL: DUEÑO vs PUJADOR -->
+        <!-- ======================================================= -->
+        
+        <!-- VISTA PARA EL DUEÑO DE LA SUBASTA -->
+        <div v-if="isOwner" class="owner-view">
+          <h3>{{ t('auctionDetails.pendingBidsTitle') }}</h3>
+          <ul v-if="topBids.length > 0" class="bids-list">
+            <li v-for="(bid, index) in topBids" :key="index" class="bid-item">
+              <div class="bid-info">
+                <span class="bidder-name">{{ bid.nombrePujador }}</span>
+                <span class="bid-amount">{{ formatCurrency(bid.monto) }}</span>
+              </div>
+              <!-- El botón solo se deshabilita si la subasta ya tiene un ganador oficial -->
+              <button @click="handleAcceptBid(bid)" class="btn-accept-bid" :disabled="subastaData.estado === 'finalizada'">
+                {{ t('auctionDetails.acceptBid') }}
+              </button>
+            </li>
+          </ul>
+          <p v-else class="no-bids-text">{{ t('auctionDetails.noPendingBids') }}</p>
+        </div>
+
+        <!-- VISTA PARA PUJADORES -->
+        <form v-else @submit.prevent="handlePuja" class="bid-form">
           <div class="input-group">
             <span class="currency-symbol">CRC</span>
             <input 
@@ -56,6 +81,7 @@
       </div>
     </div>
     
+    <!-- Cuadrícula de Especificaciones -->
     <div class="specs-grid">
       <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.category') }}</span><span class="value">{{ subastaData.categoria }}</span></div>
       <div class="spec-item"><span class="label">{{ t('auctionDetails.specs.gender') }}</span><span class="value">{{ subastaData.genero }}</span></div>
@@ -69,11 +95,11 @@
       </div>
       <div class="spec-item">
         <span class="label">{{ t('auctionDetails.specs.currentBidder') }}</span>
-        <span class="value">{{ subastaData.pujador || t('auctionDetails.specs.notAvailable') }}</span>
+        <span class="value">{{ subastaData.pujador?.nombre || t('auctionDetails.specs.notAvailable') }}</span>
       </div>
     </div>
     
-    <!-- Sección del Admin traducida -->
+    <!-- Sección del Administrador -->
     <div v-if="authStore.isAdmin && subastaData.esPendiente" class="admin-actions">
       <h3>{{ t('auctionDetails.adminActionsTitle') }}</h3>
       <button @click="handleApprove" class="btn-approve">{{ t('auctionDetails.approveButton') }}</button>
@@ -93,8 +119,9 @@ import { useSubastasStore } from '../store/subastas';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { useI18n } from 'vue-i18n';
+import SubastaService from '../services/subastaService';
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close']);
 const { t } = useI18n(); 
 
 const props = defineProps({
@@ -105,13 +132,12 @@ const authStore = useAuthStore();
 const subastasStore = useSubastasStore();
 const router = useRouter();
 
-// Define la URL base de tu backend
 const backendUrl = 'http://localhost:3000';
 
 const subastaData = computed(() => subastasStore.getSubastaById(props.subastaId));
 const mainImage = ref('');
 const tiempoRestante = ref('');
-const subastaFinalizada = ref(false);
+const subastaFinalizadaLocal = ref(false); // Ref local para saber si el *tiempo* se acabó
 let timerInterval = null;
 const nuevaPuja = ref(null);
 const errorPuja = ref('');
@@ -120,16 +146,53 @@ const setMainImage = (imgUrl) => {
   mainImage.value = imgUrl; 
 };
 
+const pujaMinima = computed(() => subastaData.value ? (subastaData.value.puja || subastaData.value.precioInicial) : 0);
+const activeProfile = computed(() => authStore.activeProfileData);
+
+const isOwner = computed(() => {
+  if (!authStore.isLoggedIn || !subastaData.value?.vendedor) return false;
+  return subastaData.value.vendedor.nombre === (activeProfile.value?.nombre || activeProfile.value?.nombreCompleto);
+});
+
+const isBidAllowed = computed(() => {
+  return authStore.isLoggedIn && 
+         subastaData.value?.estado === 'activa' && 
+         !subastaFinalizadaLocal.value &&        
+         !authStore.isAdmin && 
+         !!activeProfile.value && 
+         !isOwner.value;
+});
+
+const topBids = computed(() => {
+  if (!subastaData.value?.historialPujas) return [];
+  const history = [...subastaData.value.historialPujas].sort((a, b) => b.monto - a.monto);
+  const uniqueBidders = history.reduce((acc, current) => {
+    if (!acc.some(item => item.usuarioId === current.usuarioId)) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+  return uniqueBidders.slice(0, 3);
+});
+
 const calcularTiempoRestante = () => {
-  if (!subastaData.value?.fechaFinal) return;
+  if (subastaData.value?.estado === 'finalizada') {
+    tiempoRestante.value = t('auctionDetails.btn.finished');
+    subastaFinalizadaLocal.value = true;
+    if(timerInterval) clearInterval(timerInterval);
+    return;
+  }
+
   const ahora = new Date();
   const fechaFinal = new Date(subastaData.value.fechaFinal);
   const diferencia = fechaFinal - ahora;
+
   if (diferencia <= 0) {
-    tiempoRestante.value = "Subasta Finalizada";
-    subastaFinalizada.value = true;
+    tiempoRestante.value = t('auctionDetails.btn.finished');
+    subastaFinalizadaLocal.value = true;
     clearInterval(timerInterval);
   } else {
+    subastaFinalizadaLocal.value = false;
     const d = Math.floor(diferencia / 86400000);
     const h = Math.floor((diferencia % 86400000) / 3600000);
     const m = Math.floor((diferencia % 3600000) / 60000);
@@ -137,10 +200,6 @@ const calcularTiempoRestante = () => {
     tiempoRestante.value = `${d}d ${h}h ${m}m ${s}s`;
   }
 };
-
-const pujaMinima = computed(() => subastaData.value ? (subastaData.value.puja || subastaData.value.precioInicial) : 0);
-const activeProfile = computed(() => authStore.activeProfileData);
-const isBidAllowed = computed(() => authStore.isLoggedIn && !subastaFinalizada.value && !authStore.isAdmin && activeProfile.value);
 
 const handlePuja = async () => {
   if (!isBidAllowed.value) {
@@ -161,7 +220,7 @@ const handlePuja = async () => {
     return;
   }
 
-  const pujaMaxima = pujaMinima.value * 2;
+  const pujaMaxima = pujaMinima.value * 10;
   if (nuevaPuja.value > pujaMaxima && pujaMinima.value > 0) { 
     errorPuja.value = t('auctionDetails.bidMaxError', { amount: formatCurrency(pujaMaxima) });
     return;
@@ -169,30 +228,66 @@ const handlePuja = async () => {
 
   errorPuja.value = '';
   try {
-    const pujadorNombre = activeProfile.value.nombre || activeProfile.value.nombreCompleto;
+    const pujador = {
+      id: authStore.currentUser.id,
+      nombre: activeProfile.value.nombre || activeProfile.value.nombreCompleto
+    };
     await subastasStore.placeBid({
       subastaId: subastaData.value.id,
       montoPuja: nuevaPuja.value,
-      pujador: pujadorNombre,
+      pujador: pujador
     });
-    
     Swal.fire({
       icon: 'success', title: t('auctionDetails.bidSuccessTitle'), text: t('auctionDetails.bidSuccessText'),
       timer: 2000, showConfirmButton: false,
       willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; }
     });
     nuevaPuja.value = null;
-
-  } catch (error) {
-    errorPuja.value = error.message || t('auctionDetails.bidProcessError');
+  } catch (err) {
+    errorPuja.value = err.message || t('auctionDetails.bidProcessError');
   }
 };
 
+async function handleAcceptBid(bid) {
+  const swalConfig = {
+    title: t('profile.delete_account_confirm_title'),
+    text: `¿Deseas aceptar la puja de ${formatCurrency(bid.monto)} de ${bid.nombrePujador}? Esta acción finalizará la subasta.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: t('auctionDetails.acceptBid'),
+    cancelButtonText: t('profile.cancel'),
+    willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; }
+  };
+  const result = await Swal.fire(swalConfig);
+  if (result.isConfirmed) {
+    try {
+      const winnerData = {
+        usuarioId: bid.usuarioId,
+        nombrePujador: bid.nombrePujador,
+        monto: bid.monto
+      };
+      await SubastaService.finalizeAuction(props.subastaId, winnerData);
+      await Swal.fire({
+        icon: 'success', title: '¡Subasta Finalizada!', text: 'Has seleccionado un ganador.',
+        willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; }
+      });
+      await subastasStore.fetchSubastas();
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error', title: t('profile.error'), text: 'No se pudo finalizar la subasta.',
+        willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '4000'; }
+      });
+    }
+  }
+}
+
 const getButtonText = () => {
-  if (subastaFinalizada.value) return t('auctionDetails.btn.finished');
+  if (subastaData.value?.estado === 'finalizada') return t('auctionDetails.btn.finished');
+  if (subastaFinalizadaLocal.value && !isOwner.value) return t('auctionDetails.btn.finished');
   if (!authStore.isLoggedIn) return t('auctionDetails.btn.loginToBid');
-  if (authStore.isAdmin) return t('auctionDetails.btn.placeBid'); 
+  if (authStore.isAdmin) return t('auctionDetails.btn.placeBid'); // Admin no puede pujar, pero isBidAllowed lo bloquea.
   if (!activeProfile.value) return t('auctionDetails.btn.profileRequired');
+  if (isOwner.value) return 'Gestionar Pujas'; // Este texto no se mostrará, es para coherencia.
   return t('auctionDetails.btn.placeBid');
 };
 
@@ -219,25 +314,30 @@ const handleReject = async () => {
 watch(subastaData, (newData) => {
   if (newData) {
     mainImage.value = newData.imagen || newData.imagenes?.[0] || '/img/placeholder.jpg';
+    calcularTiempoRestante();
   }
-}, { immediate: true });
+}, { immediate: true, deep: true });
 
 onMounted(() => {
   if (subastaData.value) {
     calcularTiempoRestante();
-    timerInterval = setInterval(calcularTiempoRestante, 1000);
+    if (subastaData.value.estado === 'activa') {
+      timerInterval = setInterval(calcularTiempoRestante, 1000);
+    }
   }
 });
 
-onUnmounted(() => { clearInterval(timerInterval); });
+onUnmounted(() => { 
+  if (timerInterval) clearInterval(timerInterval); 
+});
 </script>
 
 <style scoped>
 .subasta-details { font-family: 'Segoe UI', sans-serif; color: #3E2723; }
-.main-content { display: flex; gap: 30px; margin-bottom: 30px; }
-.image-gallery { flex: 1; }
+.main-content { display: flex; flex-direction: row; gap: 30px; margin-bottom: 30px; }
+.image-gallery { flex: 1.2; }
 .main-image { width: 100%; border-radius: 12px; background-color: #f0f0f0; aspect-ratio: 4 / 3; object-fit: cover; }
-.thumbnail-strip { display: flex; gap: 10px; margin-top: 10px; }
+.thumbnail-strip { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 .thumbnail { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
 .thumbnail.active { border-color: #8D6E63; }
 .info-panel { flex: 1; display: flex; flex-direction: column; }
@@ -262,15 +362,30 @@ onUnmounted(() => { clearInterval(timerInterval); });
 .bid-button:hover:not(:disabled) { background-color: #5C3218; }
 .bid-button:disabled { background-color: #A1887F; cursor: not-allowed; opacity: 0.7; }
 .error-text { color: #c0392b; font-size: 0.9rem; text-align: center; margin-top: 5px; min-height: 1.2em; }
-.specs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background-color: #f5f5f5; padding: 20px; border-radius: 8px; }
+.specs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; background-color: #f5f5f5; padding: 20px; border-radius: 8px; }
 .spec-item { display: flex; flex-direction: column; }
 .spec-item .label { font-size: 0.8rem; color: #A1887F; text-transform: uppercase; }
 .spec-item .value { font-size: 1rem; font-weight: 600; }
 .error-message { text-align: center; padding: 40px; }
-
 .admin-actions { margin-top: 30px; padding: 20px; border-top: 1px solid #e0e0e0; background-color: #fff9c4; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .admin-actions h3 { margin: 0 0 10px; color: #5D4037; }
 .admin-actions button { width: 200px; padding: 10px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
 .btn-approve { background-color: #4CAF50; }
 .btn-reject { background-color: #f44336; }
+
+.owner-view { margin-top: 20px; padding: 15px; background-color: #fdfaf7; border: 1px solid #e0e0e0; border-radius: 8px; }
+.owner-view h3 { margin-top: 0; margin-bottom: 15px; color: #5D4037; text-align: center; }
+.bids-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.bid-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #fff; border-radius: 6px; border: 1px solid #eee; }
+.bid-info { display: flex; flex-direction: column; }
+.bidder-name { font-weight: 600; color: #3E2723; }
+.bid-amount { color: #A85B2C; font-size: 1.1rem; }
+.btn-accept-bid { padding: 8px 15px; border: none; background-color: #4CAF50; color: white; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+.btn-accept-bid:hover:not(:disabled) { background-color: #388E3C; }
+.btn-accept-bid:disabled { background-color: #9E9E9E; cursor: not-allowed; }
+.no-bids-text { text-align: center; color: #8D6E63; padding: 10px 0; }
+
+@media (max-width: 768px) {
+  .main-content { flex-direction: column; }
+}
 </style>

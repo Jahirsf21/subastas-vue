@@ -14,7 +14,7 @@ class SubastaService {
   }
 
   /**
-   * Obtiene una sola subasta por su ID (activa o pendiente).
+   * Obtiene una sola subasta por su ID (activa, pendiente o rechazada).
    * @param {number} id - El ID de la subasta a obtener.
    * @returns {Promise<AxiosResponse<any>>}
    */
@@ -25,7 +25,7 @@ class SubastaService {
   /**
    * Envía una puja para una subasta específica.
    * @param {number} subastaId - El ID de la subasta.
-   * @param {object} bidData - Los datos de la puja, ej: { montoPuja: 1000, pujador: 'Nombre' }.
+   * @param {object} bidData - Los datos de la puja, ej: { montoPuja: 1000, pujador: { id, nombre } }.
    * @returns {Promise<AxiosResponse<any>>}
    */
   placeBid(subastaId, bidData) {
@@ -38,9 +38,6 @@ class SubastaService {
    * @returns {Promise<AxiosResponse<any>>}
    */
   create(auctionFormData) {
-    // Cuando se envía un objeto FormData, axios establece automáticamente
-    // el 'Content-Type' a 'multipart/form-data'.
-    // No es necesario añadirlo manualmente, pero es bueno saberlo.
     return axios.post(API_URL + 'subastas', auctionFormData);
   }
 
@@ -64,10 +61,10 @@ class SubastaService {
     return axios.post(API_URL + `admin/subastas/${subastaId}/manage`, { action });
   }
 
-  // --- MÉTODOS DE USUARIO ---
+  // --- MÉTODOS DE USUARIO Y VENDEDOR ---
   
   /**
-   * Obtiene todas las subastas (activas y pendientes) de un vendedor específico.
+   * Obtiene todas las subastas (activas, pendientes y rechazadas) de un vendedor específico.
    * @param {string} sellerName - El nombre del vendedor.
    * @returns {Promise<AxiosResponse<any>>}
    */
@@ -75,6 +72,24 @@ class SubastaService {
     return axios.get(`${API_URL}user/subastas`, { params: { nombreVendedor: sellerName } });
   }
 
+  /**
+   * NUEVO: Obtiene la lista de subastas en las que un usuario ha pujado, con su estado.
+   * @param {number} userId - El ID del usuario.
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  getMyBids(userId) {
+    return axios.get(API_URL + `user/${userId}/pujas`);
+  }
+
+  /**
+   * NUEVO: Finaliza una subasta y establece un ganador.
+   * @param {number} subastaId - El ID de la subasta.
+   * @param {object} winnerData - Datos del ganador, ej: { usuarioId, nombrePujador, monto }
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  finalizeAuction(subastaId, winnerData) {
+    return axios.post(API_URL + `subastas/${subastaId}/finalizar`, { ganadorInfo: winnerData });
+  }
 }
 
 // Exportamos una instancia de la clase para poder usarla en otros archivos

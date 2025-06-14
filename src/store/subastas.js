@@ -2,52 +2,41 @@ import { defineStore } from "pinia";
 import SubastaService from "../services/subastaService";
 
 export const useSubastasStore = defineStore("subastas", {
-  // 1. STATE: Datos centrales, incluyendo el buscador y sub-filtro de género
+  // 1. STATE: Fusionado, con los nuevos campos para 'myBids'
   state: () => ({
     subastas: [],
     myAuctions: [],
-    isMyAuctionsLoading: false,
     pendingSubastas: [],
+    myBids: [],             // NUEVO: Para las subastas en las que el usuario ha pujado
     isLoading: false,
+    isMyAuctionsLoading: false,
+    isMyBidsLoading: false, // NUEVO: Estado de carga para las pujas
     error: null,
     activeFilter: 'peso',
     genderSubFilter: 'todos',
-    /**
-     * ¡NUEVO! Estado para el término de búsqueda global.
-     */
     searchQuery: '',
   }),
 
-  // 2. GETTERS: Funciones para obtener datos derivados del state
+  // 2. GETTERS: Todos tus getters originales se mantienen intactos
   getters: {
-
-
     allSubastasForAdmin: (state) => {
-      // Marcamos las pendientes para poder distinguirlas en el UI
       const pendingMarked = state.pendingSubastas.map(s => ({...s, esPendiente: true }));
       return [...pendingMarked, ...state.subastas];
     },
 
-
     getSubastaById: (state) => (subastaId) => {
-          const id = Number(subastaId);
-          // Primero busca en las subastas activas
-          let subasta = state.subastas.find((s) => s.id === id);
-          if (subasta) {
-            return subasta;
-          }
-          // Si no la encuentra, busca en las pendientes (importante para el admin)
-          subasta = state.pendingSubastas.find((s) => s.id === id);
-          if (subasta) {
-            // Le añadimos la marca 'esPendiente' para que el componente de detalles lo sepa
-            return { ...subasta, esPendiente: true };
-          }
-          return null; // Si no se encuentra en ninguna parte
-        },
+      const id = Number(subastaId);
+      let subasta = state.subastas.find((s) => s.id === id);
+      if (subasta) {
+        return subasta;
+      }
+      subasta = state.pendingSubastas.find((s) => s.id === id);
+      if (subasta) {
+        return { ...subasta, esPendiente: true };
+      }
+      return null;
+    },
 
-    /**
-     * Devuelve la lista de subastas procesada, aplicando todos los filtros en cascada.
-     */
     processedSubastas: (state) => {
       if (!state.subastas || state.subastas.length === 0) return [];
 
@@ -72,16 +61,13 @@ export const useSubastasStore = defineStore("subastas", {
         });
       }
 
-      // --- PASO 2: Filtrar por GÉNERO (si está activo) ---
       if (state.genderSubFilter !== 'todos') {
         processedList = processedList.filter(
           (subasta) => subasta.genero && subasta.genero.toLowerCase() === state.genderSubFilter
         );
       }
       
-      // --- PASO 3: Aplicar filtro/ordenamiento principal desde el NavBar ---
       switch (state.activeFilter) {
-        // Casos de ORDENAMIENTO
         case 'peso':
           return processedList.sort((a, b) => parseFloat(b.peso) - parseFloat(a.peso));
         case 'precio':
@@ -90,57 +76,41 @@ export const useSubastasStore = defineStore("subastas", {
            return processedList.sort((a, b) => parseFloat(b.edad) - parseFloat(a.edad));
         case 'auctionDate':
           return processedList.sort((a, b) => new Date(a.fechaFinal) - new Date(b.fechaFinal));
-
-        // Casos de FILTRADO ADICIONAL
         case 'ganaderia':
           return processedList.filter(s => s.vendedor?.tipo === 'Ganaderia');
-        
         case 'personal':
           return processedList.filter(s => s.vendedor?.tipo === 'Personal');
-
-        // Casos que no aplican más filtros aquí, pero mantienen los anteriores
         case 'genero':
         case 'raza':
         case 'certificacion':
         case 'vacunacion':
           return processedList;
-
         default:
           return processedList;
       }
     },
   },
 
-  // 3. ACTIONS: Métodos para modificar el state
+  // 3. ACTIONS: Fusionadas, con la nueva acción 'fetchMyBids'
   actions: {
     async fetchSubastas(isAdmin = false) {
-          this.isLoading = true;
-          this.error = null;
-          try {
-            // Obtenemos las subastas activas
-            const response = await SubastaService.getAll();
-            this.subastas = response.data;
-
-            // Si es admin, también obtenemos las pendientes
-            if (isAdmin) {
-              const pendingResponse = await SubastaService.getPending();
-              this.pendingSubastas = pendingResponse.data;
-            }
-
-          } catch (err) {
-            // ... (manejo de error existente)
-          } finally {
-            this.isLoading = false;
-          }
-        },
-
-
-    async approveAuction(subastaId) {
-      await SubastaService.manageAuction(subastaId, 'aprobar');
-      // Refrescamos los datos para ver los cambios
-      await this.fetchSubastas(true); 
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await SubastaService.getAll();
+        this.subastas = response.data;
+        if (isAdmin) {
+          const pendingResponse = await SubastaService.getPending();
+          this.pendingSubastas = pendingResponse.data;
+        }
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Error al cargar subastas.';
+        console.error("Error en fetchSubastas:", err);
+      } finally {
+        this.isLoading = false;
+      }
     },
-    
+
     async fetchMyAuctions(sellerName) {
       if (!sellerName) return;
       this.isMyAuctionsLoading = true;
@@ -153,24 +123,30 @@ export const useSubastasStore = defineStore("subastas", {
         this.isMyAuctionsLoading = false;
       }
     },
-
-    async rejectAuction(subastaId) {
-      await SubastaService.manageAuction(subastaId, 'rechazar');
-      await this.fetchSubastas(true);
-    },
     
-    setActiveFilter(filterName) {
-      this.activeFilter = filterName;
-      if (filterName !== 'genero') {
-        this.genderSubFilter = 'todos';
+    /**
+     * NUEVO: Obtiene la lista de subastas en las que el usuario ha pujado, con su estado.
+     */
+    async fetchMyBids(userId) {
+      if (!userId) return;
+      this.isMyBidsLoading = true;
+      try {
+        const response = await SubastaService.getMyBids(userId);
+        this.myBids = response.data;
+      } catch (error) {
+        console.error("Error al cargar mis pujas:", error);
+        this.myBids = [];
+      } finally {
+        this.isMyBidsLoading = false;
       }
     },
-    
-    setGenderSubFilter(gender) {
-      const validGenders = ['todos', 'macho', 'hembra'];
-      if (validGenders.includes(gender)) {
-        this.genderSubFilter = gender;
-        this.activeFilter = 'genero';
+
+    async addAuction(auctionData) {
+      try {
+        const response = await SubastaService.create(auctionData);
+        return Promise.resolve(response.data);
+      } catch (error) {
+        return Promise.reject(error.response?.data || { message: 'Error al crear la subasta' });
       }
     },
 
@@ -186,25 +162,36 @@ export const useSubastasStore = defineStore("subastas", {
         }
         return Promise.resolve(response.data);
       } catch (error) {
-        console.error("Error al realizar la puja:", error.response?.data || error.message);
-        return Promise.reject(error.response?.data || { message: 'Error desconocido' });
+        return Promise.reject(error.response?.data || { message: 'Error al realizar la puja' });
       }
     },
-    async addAuction(auctionData) {
-      try {
+    
+    async approveAuction(subastaId) {
+      await SubastaService.manageAuction(subastaId, 'aprobar');
+      await this.fetchSubastas(true);
+    },
 
-        const response = await SubastaService.create(auctionData);
-        return Promise.resolve(response.data);
-      } catch (error) {
-        console.error("Error al crear la subasta:", error.response?.data || error.message);
-        return Promise.reject(error.response?.data || { message: 'Error desconocido' });
+    async rejectAuction(subastaId) {
+      await SubastaService.manageAuction(subastaId, 'rechazar');
+      await this.fetchSubastas(true);
+    },
+    
+    // --- Acciones de filtrado (originales) ---
+    setActiveFilter(filterName) {
+      this.activeFilter = filterName;
+      if (filterName !== 'genero') {
+        this.genderSubFilter = 'todos';
+      }
+    },
+    
+    setGenderSubFilter(gender) {
+      const validGenders = ['todos', 'macho', 'hembra'];
+      if (validGenders.includes(gender)) {
+        this.genderSubFilter = gender;
+        this.activeFilter = 'genero';
       }
     },
 
-    /**
-     * ¡NUEVO! Acción para actualizar el término de búsqueda.
-     * Será llamada desde el componente del Header.
-     */
     setSearchQuery(query) {
       this.searchQuery = query;
     }

@@ -36,7 +36,7 @@ const getDefaultData = () => ({
   users: [],
   subastas: [],
   subastasPendientes: [],
-  subastasRechazadas: [], // Lista para subastas rechazadas
+  subastasRechazadas: [],
   admins: []
 });
 
@@ -44,6 +44,7 @@ const readDB = () => {
     try {
         if (fs.existsSync(DB_FILE)) {
             const data = fs.readFileSync(DB_FILE, 'utf8');
+            // Fusionamos con los datos por defecto para asegurar que todas las claves principales existan
             return { ...getDefaultData(), ...JSON.parse(data) };
         }
     } catch (error) {
@@ -61,6 +62,50 @@ const writeDB = (data) => {
 };
 
 let db = readDB();
+
+// --- MIGRACIÓN AUTOMÁTICA DE DATOS AL INICIAR ---
+function migrarEstructuraDatos(database) {
+  let modificado = false;
+  
+  // 1. Migrar estructura de Subastas
+  const listasDeSubastas = [
+    database.subastas, 
+    database.subastasPendientes, 
+    database.subastasRechazadas
+  ];
+
+  listasDeSubastas.forEach(lista => {
+    if (Array.isArray(lista)) {
+      lista.forEach(subasta => {
+        if (!subasta.historialPujas) {
+          subasta.historialPujas = [];
+          modificado = true;
+        }
+        if (typeof subasta.ganador === 'undefined') {
+          subasta.ganador = null;
+          modificado = true;
+        }
+      });
+    }
+  });
+
+  // 2. Migrar estructura de Usuarios (eliminando el antiguo historial si existe)
+  //   y asegurando que el nuevo esté si se decide usarlo en el futuro.
+  if (Array.isArray(database.users)) {
+    database.users.forEach(user => {
+      // Si usas el historial en el usuario, puedes asegurar su existencia aquí.
+      // Si decidiste moverlo a la subasta, puedes limpiar el antiguo campo.
+      // Por ahora lo dejamos como está para no perder datos.
+    });
+  }
+
+  if (modificado) {
+    console.log('Estructura de datos actualizada automáticamente.');
+    writeDB(database);
+  }
+}
+
+migrarEstructuraDatos(db);
 
 // --- RUTAS DE AUTENTICACIÓN ---
 app.post('/api/auth/login', (req, res) => {
@@ -113,35 +158,63 @@ app.delete('/api/auth/account', (req, res) => {
 });
 
 // --- RUTAS DE SUBASTAS ---
-
 app.post('/api/subastas', upload.array('imagenes', 5), (req, res) => {
+    // 1. Obtener datos del cuerpo de la solicitud y los archivos subidos
     const newAuctionData = req.body;
     const files = req.files;
+
+    // 2. Validación de campos esenciales
     if (!newAuctionData.titulo || !newAuctionData.precioInicial || !newAuctionData.fechaFinal) {
         return res.status(400).json({ message: "Faltan datos esenciales para crear la subasta." });
     }
+
+    // 3. Validación CLAVE: Asegurarse de que el ID del vendedor fue enviado
+    if (!newAuctionData.vendedorId) {
+        // Esta validación es crucial para la lógica de "isOwner" en el frontend
+        return res.status(400).json({ message: "Falta el ID del vendedor para crear la subasta." });
+    }
+
+    // 4. Procesar las imágenes subidas
     const imagePaths = files ? files.map(file => `/uploads/${file.filename}`) : [];
+
+    // 5. Construir el nuevo objeto de subasta pendiente
     const newPendingAuction = {
         id: Date.now(),
-        ...newAuctionData,
+        ...newAuctionData, // Incluye todos los demás campos (descripcion, raza, etc.)
         precioInicial: parseFloat(newAuctionData.precioInicial),
         imagenes: imagePaths,
-        imagen: imagePaths.length > 0 ? imagePaths[0] : '/img/placeholder.jpg',
-        fechaInicio: new Date().toISOString(),
+        imagen: imagePaths.length > 0 ? imagePaths[0] : '/img/placeholder.jpg', // Imagen principal por defecto
+        fechaInicio: null, // La fecha de inicio se establece al aprobar
         estado: 'pendiente',
+        
+        // Objeto 'vendedor' con la estructura robusta (incluyendo el ID)
         vendedor: {
+            id: parseInt(newAuctionData.vendedorId, 10), // Convertir a número entero
             tipo: newAuctionData.vendedorTipo,
             nombre: newAuctionData.vendedorNombre,
-            logo: newAuctionData.vendedorLogo,
-        }
+        },
+        
+        // Inicializar los campos para el historial y el ganador
+        historialPujas: [],
+        ganador: null
     };
+
+    // 6. Limpiar los campos redundantes del objeto principal
+    delete newPendingAuction.vendedorId; 
     delete newPendingAuction.vendedorTipo;
     delete newPendingAuction.vendedorNombre;
     delete newPendingAuction.vendedorLogo;
+
+    // 7. Guardar la nueva subasta en la lista de pendientes y en la base de datos
     db.subastasPendientes.push(newPendingAuction);
     writeDB(db);
-    console.log('Nueva subasta pendiente registrada:', newPendingAuction.id);
-    res.status(201).json({ message: "Subasta registrada y pendiente de aprobación.", subasta: newPendingAuction });
+
+    // 8. Enviar respuesta de éxito al cliente
+    console.log('Nueva subasta pendiente registrada:', newPendingAuction.id, 'por vendedor ID:', newPendingAuction.vendedor.id);
+    res.status(201).json({ 
+        message: "Subasta registrada y pendiente de aprobación.", 
+        subasta: newPendingAuction 
+    });
 });
 
 app.get('/api/subastas', (req, res) => {
@@ -159,17 +232,52 @@ app.get('/api/subastas/:id', (req, res) => {
 
 app.post('/api/subastas/:id/pujar', (req, res) => {
   const subastaId = parseInt(req.params.id, 10);
-  const { montoPuja, pujador } = req.body;
-  if (!montoPuja || !pujador) return res.status(400).json({ message: "Faltan datos." });
+  const { montoPuja, pujador } = req.body; // pujador es { id, nombre }
+
+  if (!montoPuja || !pujador || !pujador.id || !pujador.nombre) {
+    return res.status(400).json({ message: "Faltan datos de la puja o del pujador." });
+  }
+
   const subasta = db.subastas.find(s => s.id === subastaId);
   if (!subasta) return res.status(404).json({ message: "Subasta no encontrada." });
-  if (new Date(subasta.fechaFinal) < new Date()) return res.status(400).json({ message: "Esta subasta ya finalizó." });
+  if (new Date(subasta.fechaFinal) < new Date() && subasta.estado !== 'activa') return res.status(400).json({ message: "Esta subasta no está activa o ya finalizó." });
+  
   const pujaActual = subasta.puja || subasta.precioInicial;
-  if (montoPuja <= pujaActual) return res.status(400).json({ message: `Puja debe ser mayor a ${pujaActual}` });
+  if (montoPuja <= pujaActual) return res.status(400).json({ message: `La puja debe ser mayor a ${pujaActual}` });
+
   subasta.puja = montoPuja;
   subasta.pujador = pujador;
+
+  if (!subasta.historialPujas) {
+    subasta.historialPujas = [];
+  }
+  subasta.historialPujas.push({
+    usuarioId: pujador.id,
+    nombrePujador: pujador.nombre,
+    monto: montoPuja,
+    fecha: new Date().toISOString()
+  });
+
   writeDB(db);
   res.status(200).json(subasta);
+});
+
+app.post('/api/subastas/:id/finalizar', (req, res) => {
+  const subastaId = parseInt(req.params.id, 10);
+  const { ganadorInfo } = req.body; // ganadorInfo: { usuarioId, nombrePujador, monto }
+
+  if (!ganadorInfo || !ganadorInfo.usuarioId || !ganadorInfo.monto) {
+    return res.status(400).json({ message: "Se requieren los datos del ganador." });
+  }
+  
+  const subasta = db.subastas.find(s => s.id === subastaId);
+  if (!subasta) return res.status(404).json({ message: "Subasta no encontrada." });
+
+  subasta.estado = 'finalizada';
+  subasta.ganador = ganadorInfo;
+  
+  writeDB(db);
+  res.status(200).json({ message: "Subasta finalizada y ganador seleccionado.", subasta });
 });
 
 // --- RUTAS DE USUARIO ---
@@ -182,6 +290,44 @@ app.get('/api/user/subastas', (req, res) => {
   res.status(200).json([...pendientes, ...rechazadas, ...activas]);
 });
 
+app.get('/api/user/:userId/pujas', (req, res) => {
+    const userId = parseInt(req.params.userId, 10);
+    if (!userId) return res.status(400).json({ message: "ID de usuario no válido." });
+
+    const todasLasSubastas = [...db.subastas, ...db.subastasPendientes, ...db.subastasRechazadas];
+    const pujasDelUsuario = [];
+
+    todasLasSubastas.forEach(subasta => {
+        const pujasEnEstaSubasta = subasta.historialPujas?.filter(p => p.usuarioId === userId) || [];
+
+        if (pujasEnEstaSubasta.length > 0) {
+            const miPujaMasAlta = pujasEnEstaSubasta.reduce((max, p) => p.monto > max.monto ? p : max, pujasEnEstaSubasta[0]);
+
+            let estadoPuja = 'pendiente';
+            if (subasta.estado === 'finalizada') {
+                if (subasta.ganador && subasta.ganador.usuarioId === userId) {
+                    estadoPuja = 'aceptado';
+                } else {
+                    estadoPuja = 'rechazado';
+                }
+            } else if (subasta.estado === 'cancelada' || subasta.estado === 'rechazada') {
+                estadoPuja = 'cancelado';
+            }
+
+            pujasDelUsuario.push({
+                subastaId: subasta.id,
+                titulo: subasta.titulo,
+                imagen: subasta.imagen,
+                miPuja: miPujaMasAlta.monto,
+                pujaActual: subasta.puja || subasta.precioInicial,
+                estadoPuja: estadoPuja, // 'pendiente', 'aceptado', 'rechazado', 'cancelado'
+            });
+        }
+    });
+
+    res.status(200).json(pujasDelUsuario);
+});
+
 // --- RUTAS DE ADMINISTRADOR ---
 app.get('/api/admin/subastas-pendientes', (req, res) => {
   res.status(200).json(db.subastasPendientes || []);
@@ -192,7 +338,9 @@ app.post('/api/admin/subastas/:id/manage', (req, res) => {
   const { action } = req.body;
   const subastaIndex = db.subastasPendientes.findIndex(s => s.id === subastaId);
   if (subastaIndex === -1) return res.status(404).json({ message: "Subasta pendiente no encontrada." });
+  
   const [subastaGestionada] = db.subastasPendientes.splice(subastaIndex, 1);
+  
   if (action === 'aprobar') {
     subastaGestionada.estado = 'activa';
     subastaGestionada.fechaInicio = new Date().toISOString();
@@ -203,9 +351,9 @@ app.post('/api/admin/subastas/:id/manage', (req, res) => {
     subastaGestionada.estado = 'rechazada';
     db.subastasRechazadas.push(subastaGestionada);
     writeDB(db);
-    console.log(`Subasta ${subastaId} rechazada.`);
     return res.status(200).json({ message: "Subasta rechazada exitosamente." });
   } else {
+    // Si la acción no es válida, devolvemos la subasta a la lista de pendientes
     db.subastasPendientes.push(subastaGestionada);
     return res.status(400).json({ message: "Acción no válida." });
   }

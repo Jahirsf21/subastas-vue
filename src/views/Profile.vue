@@ -9,7 +9,6 @@
       </header>
 
       <main class="account-content">
-        <!-- VISTA CUANDO NO ESTÁ LOGUEADO -->
         <template v-if="!isLoggedIn">
           <div class="section">
             <button @click="goToLogin" class="list-item interactive" aria-label="Iniciar sesión">
@@ -35,7 +34,6 @@
           </div>
           <div class="section">
             <h2 class="section-title">{{ t('profile.general') }}</h2>
-            <!-- CORRECCIÓN AQUÍ: Convertido a etiqueta <a> para enlace externo -->
             <a 
               href="https://api.whatsapp.com/send/?phone=%2B50662116383&text&type=phone_number&app_absent=0" 
               target="_blank" 
@@ -52,8 +50,6 @@
             </a>
           </div>
         </template>
-
-        <!-- VISTA CUANDO ESTÁ LOGUEADO -->
         <template v-else>
           <div class="section">
             <h2 class="section-title">{{ t('profile.your_accounts') }}</h2>
@@ -117,7 +113,16 @@
                   <img src="/icons/row.svg" alt="" class="arrow-icon">
               </div>
             </button>
-            <!-- CORRECCIÓN AQUÍ TAMBIÉN: Convertido a etiqueta <a> -->
+
+            <button @click="openMyBidsModal" class="list-item interactive">
+              <div class="item-content">
+                <img src="/icons/estadosSubastas.svg" alt="" class="item-icon">
+                <span>{{ t('myBids.title') }}</span>
+              </div>
+              <div class="right-icon-container">
+                  <img src="/icons/row.svg" alt="" class="arrow-icon">
+              </div>
+            </button>
             <a 
               href="https://api.whatsapp.com/send/?phone=%2B50662116383&text&type=phone_number&app_absent=0" 
               target="_blank" 
@@ -159,6 +164,9 @@
   <transition name="fade">
     <MyAuctionsStatus v-if="showMyAuctionsModal" @close="showMyAuctionsModal = false" />
   </transition>
+  <transition name="fade">
+    <MyBids v-if="showMyBidsModal" @close="showMyBidsModal = false" />
+  </transition>
 </template>
 
 <script setup>
@@ -169,6 +177,7 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import PaidMethod from '../components/PaidMethod.vue';
 import MyAuctionsStatus from '../components/MyAuctionsStatus.vue';
+import MyBids from '../components/MyBids.vue';
 
 const emit = defineEmits(['close']);
 
@@ -176,6 +185,12 @@ const showMyAuctionsModal = ref(false);
 
 const openMyAuctionsModal = () => {
   showMyAuctionsModal.value = true;
+};
+const showMyBidsModal = ref(false);
+
+const openMyBidsModal = () => { 
+  console.log('Abriendo MyBids');
+  showMyBidsModal.value = true; 
 };
 
 const { t } = useI18n();
@@ -207,10 +222,6 @@ const goToCreateAccount = () => {
   emit('close');
 };
 
-const goToRoute = (route) => {
-  router.push(route);
-  emit('close');
-};
 
 const handleLogout = () => {
   authStore.logout();
