@@ -152,7 +152,6 @@ const goToHome = () => {
   router.push('/');
 };
 
-// La función `handleFileChange` ha sido eliminada.
 
 const handleRegister = async () => {
   const user = authStore.currentUser;
@@ -161,7 +160,6 @@ const handleRegister = async () => {
     Swal.fire({ icon: 'error', title: 'Error', text: t('register.passwordMismatch'), confirmButtonColor: '#6D4C41' });
     return;
   }
-  
   try {
     const registrationPayload = {
       tipoCuenta: 'Personal',
@@ -172,27 +170,25 @@ const handleRegister = async () => {
       telefono: `${formData.codigoPais}${formData.numeroTelefono}`,
       direccion: `${formData.direccion.provincia}, ${formData.direccion.canton}, ${formData.direccion.distrito}. ${formData.direccion.senas}`,
     };
-
     if (user) {
       registrationPayload.email = user.email;
     } else {
       registrationPayload.email = formData.email;
       registrationPayload.password = formData.password;
     }
-    
     await authStore.register(registrationPayload);
-
+    if (user) {
+      authStore.setActiveProfile('Personal');
+    }
     await Swal.fire({
       icon: 'success',
       title: t('register.swal_success_title'),
       text: t('register.swal_success_text'),
-      timer: 3000,
-      timerProgressBar: true,
+      timer: 2000,
       showConfirmButton: false,
     });
-
-    router.push(user ? '/profile' : '/login');
-
+    
+    router.push(user ? '/' : '/login');
   } catch (error) {
     console.error('Registration failed:', error);
     const errorMessage = error.response?.data?.message || t('register.errorMessage');

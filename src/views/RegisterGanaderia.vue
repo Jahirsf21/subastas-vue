@@ -152,8 +152,6 @@ const goToHome = () => {
   router.push('/');
 };
 
-// La función `handleFileChange` ha sido eliminada.
-
 const handleRegister = async () => {
   const user = authStore.currentUser;
   if (!user && formData.password !== formData.passwordConfirmation) {
@@ -174,27 +172,26 @@ const handleRegister = async () => {
       telefono: `${formData.codigoPais}${formData.numeroTelefono}`,
       direccion: `${formData.direccion.provincia}, ${formData.direccion.canton}, ${formData.direccion.distrito}. ${formData.direccion.senas}`,
     };
-
     if (user) {
       registrationPayload.email = user.email;
     } else {
       registrationPayload.email = formData.email;
       registrationPayload.password = formData.password;
     }
-    
     await authStore.register(registrationPayload);
+    if (user) {
+      authStore.setActiveProfile('Ganaderia');
+    }
 
     await Swal.fire({
       icon: 'success',
       title: t('registerRanch.swal_success_title'),
       text: t('registerRanch.swal_success_text'),
-      timer: 3000,
-      timerProgressBar: true,
+      timer: 2000, /
       showConfirmButton: false,
     });
     
-    router.push('/');
-
+    router.push(user ? '/' : '/login');
   } catch (error) {
     console.error('Registration failed:', error);
     const errorMessage = error.response?.data?.message || t('registerRanch.swal_generic_error_text');
