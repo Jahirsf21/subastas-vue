@@ -25,19 +25,16 @@
 <script setup>
 import { shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useSubastasStore } from '../store/subastas'; // ¡IMPORTANTE!
+import { useSubastasStore } from '../store/subastas'; 
 
 const { t } = useI18n();
-const subastasStore = useSubastasStore(); // Inicializamos el store
+const subastasStore = useSubastasStore(); 
 
 const selectCategory = (name) => {
-  // En lugar de un console.log, llamamos a la acción del store
   subastasStore.setActiveFilter(name);
   console.log(`Filtro cambiado a: ${name}`);
 };
 
-// Ajustamos los 'name' para que coincidan con el backend y el store
-// y añadimos 'langKey' para la traducción
 const categories = shallowRef([
   { name: 'peso',          langKey: 'weight',        icon: '/icons/peso.png' },
   { name: 'certificacion', langKey: 'certification', icon: '/icons/certificacion.png' },
@@ -53,7 +50,7 @@ const categories = shallowRef([
 </script>
 
 <style scoped>
-/* Tus estilos existentes van aquí, no necesitan cambios */
+
 .nav-container {
   width: 100%;
   overflow: hidden;

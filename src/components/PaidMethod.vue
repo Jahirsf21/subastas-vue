@@ -15,13 +15,13 @@
         <div class="section">
           <h2 class="section-title">{{ t('paymentMethods.savedCardsTitle') }}</h2>
           <div v-if="savedCards.length > 0">
-            <div v-for="(card, index) in savedCards" :key="index" class="list-item">
+            <div v-for="card in savedCards" :key="card.id" class="list-item">
               <div class="item-content">
                 <img :src="getCardIcon(card.number)" class="card-icon" alt="card icon"/>
                 <span>**** **** **** {{ card.number.slice(-4) }}</span>
                 <span class="card-expiry">{{ card.expiry }}</span>
               </div>
-              <button @click="removeCard(index)" class="delete-card-btn" :aria-label="t('paymentMethods.removeCardAriaLabel')">
+              <button @click="removeCard(card.id)" class="delete-card-btn" :aria-label="t('paymentMethods.removeCardAriaLabel')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
               </button>
             </div>
@@ -54,17 +54,18 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import Swal from 'sweetalert2';
 import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
+// CAMBIO: Rutas de importación corregidas
+import { useAuthStore } from '../store/auth';
+import UserService from '../services/userService';
 
+const { t } = useI18n();
+const authStore = useAuthStore();
 defineEmits(['close']);
 
-const savedCards = ref([
-  { number: '4242424242424242', expiry: '12/25', type: 'visa' },
-  { number: '5555555555555555', expiry: '08/26', type: 'mastercard' },
-]);
+const savedCards = computed(() => authStore.currentUser?.paymentMethods || []);
 
 const newCard = reactive({ number: '', expiry: '', cvc: '' });
 
@@ -74,54 +75,71 @@ const getCardIcon = (cardNumber) => {
   return '/icons/credit-card.svg';
 };
 
-const addCard = () => {
+const addCard = async () => {
   if (newCard.number.length < 16 || newCard.expiry.length < 5 || newCard.cvc.length < 3) {
     Swal.fire({
       icon: 'error',
       title: 'Error',
       text: 'Por favor, completa todos los campos correctamente.',
-      willOpen: () => {
-
-        const container = Swal.getContainer();
-        if (container) {
-          container.style.zIndex = '3000';
-        }
-      }
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '3000'; }
     });
     return;
   }
   
-  const cardType = newCard.number.startsWith('4') ? 'visa' : (newCard.number.startsWith('5') ? 'mastercard' : 'generic');
-  
-  savedCards.value.push({
-    number: newCard.number,
-    expiry: newCard.expiry,
-    type: cardType
-  });
+  try {
+    const response = await UserService.addPaymentMethod(authStore.currentUser.id, { ...newCard });
+    authStore.updateUserData(response.data.user);
 
-  newCard.number = '';
-  newCard.expiry = '';
-  newCard.cvc = '';
+    newCard.number = '';
+    newCard.expiry = '';
+    newCard.cvc = '';
 
-  Swal.fire({
-    icon: 'success',
-    title: '¡Éxito!',
-    text: 'Tarjeta agregada correctamente.',
-    willOpen: () => {
-      const container = Swal.getContainer();
-      if (container) {
-        container.style.zIndex = '3000';
-      }
-    }
-  });
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: 'Tarjeta agregada correctamente.',
+      timer: 2000,
+      showConfirmButton: false,
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '3000'; }
+    });
+  } catch (error) {
+    console.error("Error al agregar tarjeta:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo agregar la tarjeta.',
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '3000'; }
+    });
+  }
 };
 
-const removeCard = (index) => {
-  savedCards.value.splice(index, 1);
+const removeCard = async (cardId) => {
+  try {
+    const response = await UserService.deletePaymentMethod(authStore.currentUser.id, cardId);
+    authStore.updateUserData(response.data.user);
+    
+    Swal.fire({
+      icon: 'success',
+      title: '¡Eliminada!',
+      text: 'La tarjeta ha sido eliminada.',
+      timer: 2000,
+      showConfirmButton: false,
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '3000'; }
+    });
+  } catch (error) {
+    console.error("Error al eliminar tarjeta:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo eliminar la tarjeta.',
+      willOpen: () => { const container = Swal.getContainer(); if (container) container.style.zIndex = '3000'; }
+    });
+  }
 };
 </script>
 
 <style scoped>
+/* Los estilos no necesitan cambios */
 .account-page-background {
   position: fixed;
   inset: 0;

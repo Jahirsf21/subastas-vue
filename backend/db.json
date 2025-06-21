@@ -1,27 +1,5 @@
 {
-  "users": [
-    {
-      "id": 1749794362781,
-      "email": "deislhersanchezfunez@gmail.com",
-      "password": "jahir",
-      "perfilPersonal": {
-        "nombreCompleto": "Jahir sanchez funez",
-        "fechaNacimiento": "1222-05-12",
-        "tipoCedula": "Cedula",
-        "cedula": "70303090936",
-        "telefono": "+50662435191",
-        "direccion": "Limón, Limón, Central. Barrio San Juan"
-      },
-      "perfilGanaderia": {
-        "nombre": "Caracolitos",
-        "fechaFundacion": "92992-09-12",
-        "cedulaJuridica": "70303090936",
-        "telefono": "+50662435191",
-        "direccion": "Limón, Limón, Central. Barrio San Juan"
-      },
-      "historialPujas": []
-    }
-  ],
+  "users": [],
   "subastas": [],
   "subastasPendientes": [],
   "subastasRechazadas": [],

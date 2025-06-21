@@ -42,7 +42,8 @@
       
       <button class="user-button" @click="openProfileModal" aria-label="Menú de usuario">
         <div class="profile-avatar">
-          <img v-if="activeProfileInfo && activeProfileInfo.logo" :src="activeProfileInfo.logo" alt="Logo de perfil" class="avatar-image">
+          <!-- CAMBIO: Se usa la nueva propiedad 'activeProfileIcon' para el :src -->
+          <img v-if="activeProfileIcon" :src="activeProfileIcon" alt="Icono de perfil" class="avatar-image">
           <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21v-2a4 4 0 0 1 4-4h5a4 4 0 0 1 4 4v2"></path></svg>
         </div>
         <span class="profile-name">{{ activeProfileName }}</span>
@@ -70,25 +71,45 @@ const router = useRouter();
 const settingsStore = useSettingsStore();
 const subastasStore = useSubastasStore();
 
-// Lógica del Perfil Activo
-const activeProfileInfo = computed(() => authStore.activeProfileData);
+// CAMBIO: Lógica de perfil simplificada y corregida.
+
+// 1. Nombre del perfil activo (esta lógica ya era correcta)
 const activeProfileName = computed(() => {
   if (!authStore.isLoggedIn) return "Cuenta";
-  return activeProfileInfo.value?.nombre || activeProfileInfo.value?.nombreCompleto || "Mi Perfil";
+  const profile = authStore.activeProfileData;
+  return profile?.nombre || profile?.nombreCompleto || "Mi Perfil";
 });
 
+// 2. Icono del perfil activo
+const activeProfileIcon = computed(() => {
+  if (!authStore.isLoggedIn) {
+    return null; // Devuelve null si no está logueado, para que se muestre el SVG por defecto.
+  }
+  
+  // Devuelve la ruta al icono correcto basándose en el TIPO de perfil activo.
+  switch (authStore.activeProfile) {
+    case 'Ganaderia':
+      return '/icons/perfilGanadero.svg';
+    case 'Personal':
+      return '/icons/perfilPersonal.svg';
+    default:
+      return null; // Caso por defecto si no hay perfil activo.
+  }
+});
+
+
+// Lógica del modal de perfil (sin cambios)
 const showProfileModal = ref(false);
 const openProfileModal = () => {
   showProfileModal.value = true;
 };
 
-
+// Lógica de búsqueda (sin cambios)
 const updateSearchQuery = (event) => {
   subastasStore.setSearchQuery(event.target.value);
 };
 
-
-
+// Lógica del menú de idiomas (sin cambios)
 const showLanguageMenu = ref(false);
 const toggleLanguageMenu = () => {
   showLanguageMenu.value = !showLanguageMenu.value;
@@ -100,6 +121,7 @@ const changeLanguage = (lang) => {
 </script>
   
 <style scoped>
+/* Tus estilos no necesitan cambios */
 .app-header {
   position: fixed;
   top: 0;

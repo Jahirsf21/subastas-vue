@@ -45,8 +45,20 @@
           </div>
           <div class="form-group full-width"><label>{{ t('createAuction.description') }}</label><input type="text" v-model="formData.descripcion" required></div>
           <div class="footer-grid">
-            <div class="form-group"><label>{{ t('createAuction.basePrice') }}</label><input type="number" v-model.number="formData.precioInicial" required></div>
-            <div class="form-group"><label>{{ t('createAuction.deadline') }}</label><input type="datetime-local" v-model="formData.fechaFinal" required></div>
+            <div class="form-group"><label>{{ t('createAuction.basePrice') }}</label><input type="number" v-model.number="formData.precioInicial" required min="0"></div>
+            
+            <!-- CAMBIO: Se reemplaza el campo de fecha por duración -->
+            <div class="form-group">
+              <label>{{ t('createAuction.duration') }}</label>
+              <div class="duration-input-group">
+                <input type="number" v-model.number="formData.duracionValor" required min="1" class="duration-value">
+                <select v-model="formData.duracionUnidad" class="duration-unit">
+                  <option value="dias">{{ t('createAuction.durationUnits.days') }}</option>
+                  <option value="horas">{{ t('createAuction.durationUnits.hours') }}</option>
+                </select>
+              </div>
+            </div>
+
             <button type="submit" class="submit-button">{{ t('createAuction.submit') }}</button>
           </div>
         </div>
@@ -70,6 +82,7 @@ const authStore = useAuthStore();
 const previewUrl = ref(null);
 const isRanchProfile = computed(() => authStore.activeProfile === 'Ganaderia');
 
+// CAMBIO: Se actualiza el objeto del formulario
 const formData = reactive({
   titulo: '',
   raza: '',
@@ -81,7 +94,8 @@ const formData = reactive({
   vacunaciones: '',
   descripcion: '',
   precioInicial: null,
-  fechaFinal: '',
+  duracionValor: 3,      // Valor por defecto
+  duracionUnidad: 'dias', // Unidad por defecto
   imagenes: [],
   lote: '',
   fechaNacimiento: '',
@@ -107,37 +121,28 @@ const handleSubmit = async () => {
   const currentUser = authStore.currentUser;
 
   if (!activeProfileData || !currentUser) {
-    console.error("No hay perfil activo o usuario logueado.");
     Swal.fire({ ...swalConfig, icon: 'error', title: 'Error', text: 'Debes estar logueado y tener un perfil activo para crear una subasta.' });
     return;
   }
   
   const dataToSend = new FormData();
-
-  // 1. Añade los campos de texto del formulario
+  
   for (const key in formData) {
-    // Asegurarse de no enviar campos vacíos que no sean requeridos
     if (key !== 'imagenes' && formData[key] !== '' && formData[key] !== null) {
+      // CAMBIO: ya no se envía fechaFinal, se envían los datos de duración
       dataToSend.append(key, formData[key]);
     }
   }
-
-  // =======================================================
-  //  CAMBIO CLAVE: AÑADIR EL ID DEL VENDEDOR
-  // =======================================================
-  dataToSend.append('vendedorId', currentUser.id); // <-- SE AÑADE EL ID DEL USUARIO
-  // =======================================================
   
-  // 2. Añade la información del perfil del vendedor
+  dataToSend.append('vendedorId', currentUser.id);
   dataToSend.append('vendedorTipo', authStore.activeProfile);
   dataToSend.append('vendedorNombre', activeProfileData.nombre || activeProfileData.nombreCompleto);
-  // 3. Añade los archivos de imagen
+
   if (formData.imagenes.length > 0) {
     formData.imagenes.forEach(file => {
       dataToSend.append('imagenes', file);
     });
   } else {
-    // Opcional: Validar que al menos una imagen sea subida
     Swal.fire({ ...swalConfig, icon: 'warning', title: 'Falta Imagen', text: 'Por favor, sube al menos una imagen para la subasta.' });
     return;
   }
@@ -174,5 +179,8 @@ const handleSubmit = async () => {
 .form-group input, .form-group select { padding: 0.6rem; border: 1px solid #D7CCC8; border-radius: 6px; background-color: #EAE3E0; font-size: 0.95rem; }
 .full-width { grid-column: 1 / -1; }
 .footer-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1.5rem; align-items: flex-end; margin-top: 1rem; }
-.submit-button { padding: 0.6rem 2rem; background-color: #A85B2C; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; align-self: flex-end; }
+.submit-button { padding: 0.6rem 2rem; background-color: #A85B2C; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; align-self: flex-end; height: fit-content; }
+.duration-input-group { display: flex; }
+.duration-value { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.duration-unit { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; border-left: none !important; }
 </style>

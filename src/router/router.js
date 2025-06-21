@@ -6,6 +6,7 @@ import Login from '../views/Login.vue';
 import RegisterGanaderia from '../views/RegisterGanaderia.vue';
 import RegisterPersonal from '../views/RegisterPersonal.vue';
 import SelectTypeAccount from '../components/SelectTypeAccount.vue';
+import PurchaseView from '../views/PurchaseView.vue'
 
 const routes = [
     {
@@ -23,25 +24,33 @@ const routes = [
         path: '/SelectTypeAccount', 
         name: 'SelectTypeAccount',
         component: SelectTypeAccount,
+        meta: { requiresNoFullProfile: true }
     },
     {
         path: '/registerGanaderia',
         name: 'registerGanaderia',
         component: RegisterGanaderia,
-        meta: { profileType: 'Ganaderia' } // Añadimos metadatos
+        meta: { profileType: 'Ganaderia' } 
     },
     {
         path: '/registerPersonal',
         name: 'registerPersonal',
         component: RegisterPersonal,
-        meta: { profileType: 'Personal' } // Añadimos metadatos
+        meta: { profileType: 'Personal' } 
     },
+    {
+        path: '/Purchase/:id',
+        name: 'Purchase',
+        component: PurchaseView,
+        meta: { requiresAuth: true }
+    }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes
 });
+
 
 
 router.beforeEach((to, from, next) => {
@@ -51,26 +60,27 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !isLoggedIn) {
         return next({ name: 'login' });
     }
-
-
     if (to.meta.guest && isLoggedIn) {
         return next({ name: 'home' });
     }
-    if (isLoggedIn && to.meta.profileType) {
-        if (to.meta.profileType === 'Personal' && user?.perfilPersonal) {
-            return next({ name: 'home' }); 
-        }
-        if (to.meta.profileType === 'Ganaderia' && user?.perfilGanaderia) {
-            console.log('Acceso bloqueado: Ya tienes un perfil de ganadería.');
-            return next({ name: 'home' }); 
-        }
-    }
-    if (isLoggedIn && to.name === 'chooseAccount') {
-        if (user?.perfilPersonal && user?.perfilGanaderia) {
+    if (isLoggedIn) {
+        const hasPersonalProfile = !!user?.perfilPersonal;
+        const hasRanchProfile = !!user?.perfilGanaderia;
 
+        if (to.meta.profileType === 'Personal' && hasPersonalProfile) {
+            console.log('Acceso bloqueado: Ya tienes un perfil Personal.');
             return next({ name: 'home' }); 
         }
+        if (to.meta.profileType === 'Ganaderia' && hasRanchProfile) {
+            console.log('Acceso bloqueado: Ya tienes un perfil de Ganadería.');
+            return next({ name: 'home' }); 
+        }
+        if (to.meta.requiresNoFullProfile && hasPersonalProfile && hasRanchProfile) {
+            console.log('Acceso bloqueado: Ya tienes ambos perfiles.');
+            return next({ name: 'home' });
+        }
     }
+
     next();
 });
 

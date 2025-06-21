@@ -1,66 +1,80 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay" @click.self="handleBackOrClose">
     <div class="bids-container">
       <header class="bids-header">
-        <h1>{{ t('myBids.title') }}</h1>
-        <button @click="$emit('close')" class="back-button" :aria-label="t('createAuction.goBack')">
+        <h1>{{ selectedAuctionId ? t('auctionDetails.title') : t('myBids.title') }}</h1>
+        <button @click="handleBackOrClose" class="back-button" :aria-label="t('createAuction.goBack')">
           <img src="/icons/regresar.svg" alt="Cerrar">
         </button>
       </header>
-
       <main class="bids-content">
-        <!-- Estado de carga -->
-        <div v-if="subastasStore.isMyBidsLoading" class="loader">{{ t('catalog.loading') }}</div>
-        
-        <!-- Lista de pujas del usuario -->
-        <ul v-else-if="subastasStore.myBids.length > 0" class="auction-list">
-          <li v-for="puja in subastasStore.myBids" :key="puja.subastaId" class="auction-item">
-            <!-- Imagen de la subasta -->
-            <img :src="backendUrl + (puja.imagen || '/img/placeholder.jpg')" alt="" class="item-image">
-            
-            <!-- Información de la subasta y de la puja del usuario -->
-            <div class="item-info">
-              <span class="item-title">{{ puja.titulo }}</span>
-              <span class="item-price">{{ t('myBids.yourBid') }}: {{ formatCurrency(puja.miPuja) }}</span>
-            </div>
-            
-            <!-- Estado de la puja (Aceptada, Rechazada, etc.) -->
-            <span :class="['status-badge', getStatusClass(puja.estadoPuja)]">
-              {{ t(`bidStatus.${puja.estadoPuja}`) }}
-            </span>
-          </li>
-        </ul>
-
-        <!-- Mensaje si no hay pujas -->
-        <div v-else class="no-auctions">
-          <p>{{ t('myBids.noBidsPlaced') }}</p>
-        </div>
+        <SubastaDetails v-if="selectedAuctionId":subasta-id="selectedAuctionId"@close="handleDetailsClose"/>
+        <template v-else>
+          <div v-if="subastasStore.isMyBidsLoading" class="loader">{{ t('catalog.loading') }}</div>
+          <ul v-else-if="subastasStore.myBids.length > 0" class="auction-list">
+            <li v-for="puja in subastasStore.myBids" :key="puja.subastaId" class="auction-item auction-item-clickable" @click="handleAuctionClick(puja.subastaId)">
+              <img :src="backendUrl + (puja.imagen)" alt="" class="item-image">
+              <div class="item-info">
+                <span class="item-title">{{ puja.titulo }}</span>
+                <span class="item-price">{{ t('myBids.yourBid') }}: {{ formatCurrency(puja.miPuja) }}</span>
+              </div>
+              
+              <span :class="['status-badge', getStatusClass(puja.estadoPuja)]">
+                {{ t(`bidStatus.${puja.estadoPuja?.toLowerCase() || 'pendiente'}`) }}
+              </span>
+            </li>
+          </ul>
+          <div v-else class="no-auctions">
+            <p>{{ t('myBids.noBidsPlaced') }}</p>
+          </div>
+        </template>
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
+import SubastaDetails from '../components/SubastaDetails.vue'; 
 import { useSubastasStore } from '../store/subastas';
 import { useAuthStore } from '../store/auth';
 import { useI18n } from 'vue-i18n';
+
+const selectedAuctionId = ref(null);
 
 const emit = defineEmits(['close']);
 const { t } = useI18n();
 const subastasStore = useSubastasStore();
 const authStore = useAuthStore();
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const backendUrl = 'http://localhost:3000';
 
-// Al montar el componente, se buscan las pujas del usuario actual
 onMounted(() => {
   if (authStore.currentUser?.id) {
     subastasStore.fetchMyBids(authStore.currentUser.id);
   }
 });
 
-// Función para obtener la clase CSS correcta según el estado de la puja
+const handleAuctionClick = (subastaId) => {
+  selectedAuctionId.value = subastaId;
+};
+
+const handleDetailsClose = () => {
+  selectedAuctionId.value = null;
+
+  if (authStore.currentUser?.id) {
+    subastasStore.fetchMyBids(authStore.currentUser.id);
+  }
+};
+
+const handleBackOrClose = () => {
+  if (selectedAuctionId.value) {
+    handleDetailsClose();
+  } else {
+    emit('close');
+  }
+};
+
 const getStatusClass = (status) => {
   if (!status) return 'status-unknown';
   switch (status.toLowerCase()) {
@@ -72,7 +86,6 @@ const getStatusClass = (status) => {
   }
 };
 
-// Función para formatear el dinero
 const formatCurrency = (value) => {
   if (typeof value !== 'number') return 'N/A';
   return new Intl.NumberFormat('es-CR', { 
@@ -85,7 +98,6 @@ const formatCurrency = (value) => {
 </script>
 
 <style scoped>
-/* Usamos los mismos estilos que ya tienes definidos, son perfectos */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -98,20 +110,22 @@ const formatCurrency = (value) => {
   -webkit-backdrop-filter: blur(5px);
 }
 .bids-container {
-  width: 90%;
-  max-width: 600px;
+  /* CAMBIO: Hacemos el modal más grande para que quepan bien los detalles */
+  width: 95%;
+  max-width: 900px; /* Aumentado de 600px */
   background: #F9F6F2;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  max-height: 90vh; /* Aumentado de 80vh */
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  transition: max-width 0.3s ease; /* Transición suave */
 }
 .bids-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #D7CCC8;
   position: relative;
   flex-shrink: 0;
@@ -120,10 +134,11 @@ const formatCurrency = (value) => {
   font-size: 1.5rem; 
   color: #3E2723; 
   margin: 0; 
+  text-align: center;
 }
 .back-button { 
   position: absolute; 
-  right: 1rem;
+  right: 1.5rem;
   background-color: transparent; 
   border: none;                
   padding: 0;                 
@@ -140,7 +155,7 @@ const formatCurrency = (value) => {
   height: 28px;
 }
 .bids-content { 
-  padding: 1rem; 
+  padding: 1.5rem; 
   overflow-y: auto; 
 }
 .auction-list { 
@@ -154,6 +169,15 @@ const formatCurrency = (value) => {
   gap: 1rem;
   padding: 0.8rem;
   border-bottom: 1px solid #EAE3E0;
+}
+
+.auction-item-clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  border-radius: 8px;
+}
+.auction-item-clickable:hover {
+  background-color: #ECE7E3;
 }
 .auction-item:last-child {
   border-bottom: none;
@@ -187,11 +211,10 @@ const formatCurrency = (value) => {
   text-transform: capitalize;
   white-space: nowrap;
 }
-/* Clases para los estados de las pujas */
-.status-accepted { background-color: #4CAF50; } /* Verde para Aceptada */
-.status-pending { background-color: #FFC107; color: #333; } /* Amarillo para Pendiente */
-.status-rejected { background-color: #f44336; } /* Rojo para Rechazada */
-.status-cancelled { background-color: #757575; } /* Gris para Cancelada */
+.status-accepted { background-color: #4CAF50; }
+.status-pending { background-color: #FFC107; color: #333; }
+.status-rejected { background-color: #f44336; }
+.status-cancelled { background-color: #757575; }
 .status-unknown { background-color: #9E9E9E; }
 .no-auctions { 
   text-align: center; 

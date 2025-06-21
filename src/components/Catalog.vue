@@ -1,6 +1,6 @@
 <template>
   <div class="catalog-page">
-    <button @click="openCreateAuctionModal" class="create-auction-btn">
+    <button v-if="authStore.isLoggedIn" @click="openCreateAuctionModal" class="create-auction-btn">
       {{ t('catalog.createAuction') }}
     </button>
     <div v-if="subastasStore.isLoading" class="status-message">
@@ -33,12 +33,10 @@
     </div>
   </div>
   <CreateAuction v-if="isCreateModalVisible" @close="closeCreateAuctionModal" />
-
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../store/auth'; 
 import { useSubastasStore } from '../store/subastas';
 import AuctionCard from '../components/AuctionCard.vue';
@@ -46,24 +44,26 @@ import SubastaDetails from '../components/SubastaDetails.vue';
 import { useI18n } from 'vue-i18n';
 import CreateAuction from './forms/crearSubasta.vue'
 
-
 const authStore = useAuthStore();
 const subastasStore = useSubastasStore();
 const selectedSubastaId = ref(null);
 const { t } = useI18n();
-
 const isCreateModalVisible = ref(false);
 
 const auctionsToShow = computed(() => {
-  if (authStore.isAdmin) {
-    return subastasStore.allSubastasForAdmin;
-  }
-  return subastasStore.processedSubastas;
+
+  const sourceList = authStore.isAdmin 
+    ? subastasStore.allSubastasForAdmin 
+    : subastasStore.processedSubastas;
+
+  if (!sourceList) return [];
+  return sourceList.filter(subasta => 
+    subasta.estado && subasta.estado.toLowerCase() !== 'finalizada'
+  );
 });
 
 onMounted(() => {
   subastasStore.fetchSubastas(authStore.isAdmin);
-
 });
 
 const retryFetch = () => {
@@ -85,11 +85,10 @@ const openCreateAuctionModal = () => {
 const closeCreateAuctionModal = () => {
   isCreateModalVisible.value = false;
 };
-
 </script>
 
 <style scoped>
-
+/* Tus estilos están perfectos, no necesitan cambios */
 .catalog-page {
   padding: 24px;
   background-color: #f9f9f9; 

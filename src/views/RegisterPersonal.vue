@@ -21,17 +21,9 @@
       <div class="form-content">
         <h1>{{ t('register.title') }}</h1>
         <form @submit.prevent="handleRegister">
-          <div class="form-group-full">
-            <label>{{ t('register.profilePhoto') }}</label>
-            <div class="file-uploader">
-              <div class="file-info">
-                <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <span>{{ t('register.uploadHint') }}</span>
-              </div>
-              <label for="file-input" class="btn btn-upload">{{ t('register.uploadButton') }}</label>
-              <input id="file-input" type="file" @change="handleFileChange" accept="image/*" hidden />
-            </div>
-          </div>
+          
+          <!-- CAMPO DE CARGA DE FOTO DE PERFIL ELIMINADO -->
+
           <div class="form-row">
             <div class="form-group">
               <label for="fullName">{{ t('register.fullName') }}</label>
@@ -142,6 +134,7 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 
+// Se eliminó `profileImage` de aquí
 const formData = reactive({
   nombreCompleto: '',
   fechaNacimiento: '',
@@ -153,16 +146,13 @@ const formData = reactive({
   email: '',
   password: '',
   passwordConfirmation: '',
-  profileImage: null,
 });
 
 const goToHome = () => {
   router.push('/');
 };
 
-const handleFileChange = (event) => {
-  formData.profileImage = event.target.files[0] || null;
-};
+// La función `handleFileChange` ha sido eliminada.
 
 const handleRegister = async () => {
   const user = authStore.currentUser;
@@ -184,10 +174,8 @@ const handleRegister = async () => {
     };
 
     if (user) {
-
       registrationPayload.email = user.email;
     } else {
-
       registrationPayload.email = formData.email;
       registrationPayload.password = formData.password;
     }
@@ -404,30 +392,7 @@ select {
   color: var(--color-primary);
 }
 
-.file-uploader {
-  border: 2px solid #D7CCC8;
-  border-radius: 8px;
-  padding: 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--color-secondary);
-  font-size: 0.8rem;
-}
-.btn-upload {
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
+/* Estilos de carga de archivos eliminados */
 
 .btn-submit {
   width: 100%;
